@@ -197,13 +197,10 @@ class WEC_Admin
             return;
         }
 
-        // Modal de envio individual
+        // Modal de envio individual (mantido para disparo único)
         $this->render_single_send_modal();
 
-        // Modal de envio em massa (apenas na listagem)
-        if ($screen->base === 'edit') {
-            $this->render_bulk_send_modal();
-        }
+        // Modal de disparo em massa removido - agora é feito pelo painel WP PostZap
     }
 
     /**

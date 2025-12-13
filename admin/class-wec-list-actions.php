@@ -64,9 +64,7 @@ class WEC_List_Actions
      */
     public function add_bulk_actions(array $actions): array
     {
-        if (WEC_Security::can_send_messages()) {
-            $actions['wec_bulk_send_whatsapp'] = __('Disparo em massa via WhatsApp', 'whatsapp-evolution-clients');
-        }
+        // Removido: disparo em massa agora é feito pelo novo painel WP PostZap
         return $actions;
     }
 

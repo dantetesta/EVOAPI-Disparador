@@ -33,7 +33,7 @@
         init: function () {
             this.cacheElements();
             this.bindEvents();
-            this.initFAB();
+            // FAB removido - disparo em massa agora é feito pelo painel WP PostZap
             this.initToast();
         },
 
