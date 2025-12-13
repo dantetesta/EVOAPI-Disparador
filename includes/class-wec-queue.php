@@ -211,7 +211,7 @@ class WEC_Queue
         }
 
         // Criar batch
-        $batch_id = $this->create_batch([
+        $batch_data = [
             'post_id' => $post_id,
             'post_title' => $post->post_title,
             'post_excerpt' => wp_trim_words(get_the_excerpt($post), 30, '...'),
@@ -220,10 +220,16 @@ class WEC_Queue
             'total_leads' => count($leads),
             'delay_min' => $delay_min,
             'delay_max' => $delay_max,
-        ]);
+        ];
+        
+        $batch_id = $this->create_batch($batch_data);
 
         if (!$batch_id) {
-            wp_send_json_error(['message' => 'Erro ao criar batch']);
+            global $wpdb;
+            wp_send_json_error([
+                'message' => 'Erro ao criar batch',
+                'debug' => $wpdb->last_error,
+            ]);
         }
 
         // Adicionar leads na fila
@@ -249,6 +255,9 @@ class WEC_Queue
         global $wpdb;
         $table = $wpdb->prefix . self::BATCH_TABLE;
 
+        // Verificar se tabela existe, se não criar
+        $this->ensure_tables_exist();
+
         $result = $wpdb->insert($table, [
             'post_id' => $data['post_id'],
             'post_title' => $data['post_title'],
@@ -262,7 +271,30 @@ class WEC_Queue
             'started_at' => current_time('mysql'),
         ]);
 
+        // Log de debug
+        if (!$result) {
+            error_log('[WEC Queue] Erro ao criar batch: ' . $wpdb->last_error);
+            error_log('[WEC Queue] Query: ' . $wpdb->last_query);
+        }
+
         return $result ? $wpdb->insert_id : null;
+    }
+
+    /**
+     * Garante que as tabelas existem
+     */
+    private function ensure_tables_exist(): void
+    {
+        global $wpdb;
+        $batch_table = $wpdb->prefix . self::BATCH_TABLE;
+        
+        // Verificar se tabela existe
+        $exists = $wpdb->get_var("SHOW TABLES LIKE '$batch_table'");
+        
+        if (!$exists) {
+            self::create_tables();
+            error_log('[WEC Queue] Tabelas criadas automaticamente');
+        }
     }
 
     /**
