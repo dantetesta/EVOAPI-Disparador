@@ -409,7 +409,13 @@ class WEC_Queue
         }
         $message .= "🔗 Leia mais: {$batch->post_url}";
 
-        // Se tem imagem, envia com mídia
+        // Log debug
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[WEC News] Enviando para: ' . $item->lead_phone);
+            error_log('[WEC News] Imagem: ' . ($batch->post_image ?: 'nenhuma'));
+        }
+
+        // Se tem imagem, tenta enviar com mídia
         if ($batch->post_image) {
             $result = $api->send_media(
                 $item->lead_phone,
@@ -417,6 +423,12 @@ class WEC_Queue
                 'image',
                 $message
             );
+            
+            // Se mídia falhou, tenta enviar só texto
+            if (!$result['success']) {
+                error_log('[WEC News] Mídia falhou, tentando texto: ' . $result['error']);
+                $result = $api->send_message($item->lead_phone, $message);
+            }
         } else {
             // Apenas texto
             $result = $api->send_message($item->lead_phone, $message);

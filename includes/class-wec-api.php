@@ -390,7 +390,7 @@ class WEC_API
     }
 
     /**
-     * Envia mídia via URL
+     * Envia mídia via URL (Evolution API v2)
      */
     public function send_media(string $phone, string $media_url, string $type = 'image', string $caption = ''): array
     {
@@ -407,17 +407,26 @@ class WEC_API
         $token = WEC_Settings::get_token();
         $phone_for_api = WEC_Security::format_phone_for_api($phone);
 
+        // Evolution API v2 - endpoint correto para mídia
         $endpoint = $api_url . '/message/sendMedia/' . $instance;
 
+        // Payload correto para Evolution API v2
         $payload = [
             'number' => $phone_for_api,
             'mediatype' => $type,
+            'mimetype' => 'image/jpeg',
             'media' => $media_url,
-            'fileName' => basename($media_url),
+            'fileName' => 'noticia.jpg',
         ];
 
         if (!empty($caption)) {
             $payload['caption'] = $caption;
+        }
+
+        // Log debug
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[WEC API] Endpoint: ' . $endpoint);
+            error_log('[WEC API] Payload: ' . wp_json_encode($payload));
         }
 
         $response = wp_remote_post($endpoint, [
@@ -437,6 +446,11 @@ class WEC_API
         $http_code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
+
+        // Log debug
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[WEC API] Response: ' . $http_code . ' - ' . substr($body, 0, 500));
+        }
 
         if ($http_code !== 200 && $http_code !== 201) {
             return [
