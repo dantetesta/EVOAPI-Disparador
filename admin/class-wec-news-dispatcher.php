@@ -139,88 +139,187 @@ class WEC_News_Dispatcher
 
         $interests = WEC_Queue::get_all_interests();
         $total_leads = WEC_Queue::get_total_leads();
+        
+        // Ordenar interesses alfabeticamente
+        usort($interests, function($a, $b) {
+            return strcasecmp($a['name'], $b['name']);
+        });
         ?>
         <div id="wec-news-dispatch-modal" class="wec-modal">
             <div class="wec-modal-overlay"></div>
             <div class="wec-modal-container wec-news-modal">
                 <div class="wec-modal-header">
                     <h2>
-                        <span class="dashicons dashicons-share" style="color:#25D366;"></span>
+                        <span class="dashicons dashicons-whatsapp" style="color:#25D366;"></span>
                         <?php _e('Disparar Notícia via WhatsApp', 'whatsapp-evolution-clients'); ?>
                     </h2>
                     <button type="button" class="wec-modal-close">&times;</button>
                 </div>
 
+                <!-- Sistema de Tabs -->
+                <div class="wec-tabs">
+                    <button type="button" class="wec-tab active" data-tab="preview">
+                        <span class="dashicons dashicons-visibility"></span>
+                        <?php _e('Preview', 'whatsapp-evolution-clients'); ?>
+                    </button>
+                    <button type="button" class="wec-tab" data-tab="interests">
+                        <span class="dashicons dashicons-tag"></span>
+                        <?php _e('Destinatários', 'whatsapp-evolution-clients'); ?>
+                        <span class="wec-tab-badge" id="wec-tab-badge">0</span>
+                    </button>
+                    <button type="button" class="wec-tab" data-tab="settings">
+                        <span class="dashicons dashicons-admin-settings"></span>
+                        <?php _e('Configurações', 'whatsapp-evolution-clients'); ?>
+                    </button>
+                </div>
+
                 <div class="wec-modal-body">
-                    <!-- Preview da notícia -->
-                    <div class="wec-news-preview">
-                        <div class="wec-news-preview-image" id="wec-news-image">
-                            <span class="dashicons dashicons-format-image"></span>
-                        </div>
-                        <div class="wec-news-preview-content">
-                            <h3 id="wec-news-title">Título da Notícia</h3>
-                            <p id="wec-news-excerpt">Resumo da notícia...</p>
-                            <a id="wec-news-url" href="#" target="_blank" class="wec-news-link">
-                                <span class="dashicons dashicons-external"></span> Ver notícia
-                            </a>
+                    <!-- Tab 1: Preview da Mensagem -->
+                    <div class="wec-tab-content active" data-tab="preview">
+                        <div class="wec-preview-container">
+                            <div class="wec-phone-mockup">
+                                <div class="wec-phone-header">
+                                    <span class="wec-phone-avatar">📰</span>
+                                    <span class="wec-phone-name">Sua Notícia</span>
+                                </div>
+                                <div class="wec-phone-body">
+                                    <div class="wec-whatsapp-message">
+                                        <div class="wec-msg-image" id="wec-preview-image">
+                                            <span class="dashicons dashicons-format-image"></span>
+                                        </div>
+                                        <div class="wec-msg-title" id="wec-preview-title">Título da Notícia</div>
+                                        <div class="wec-msg-text" id="wec-preview-excerpt">Resumo da notícia aparecerá aqui...</div>
+                                        <div class="wec-msg-link">🔗 <span id="wec-preview-url">link-da-noticia.com</span></div>
+                                        <div class="wec-msg-time">Agora</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="wec-preview-info">
+                                <h4><?php _e('A mensagem enviada será:', 'whatsapp-evolution-clients'); ?></h4>
+                                <ul>
+                                    <li>📷 <?php _e('Imagem de capa do post', 'whatsapp-evolution-clients'); ?></li>
+                                    <li>📝 <?php _e('Título em negrito', 'whatsapp-evolution-clients'); ?></li>
+                                    <li>📄 <?php _e('Resumo (excerpt)', 'whatsapp-evolution-clients'); ?></li>
+                                    <li>🔗 <?php _e('Link da notícia', 'whatsapp-evolution-clients'); ?></li>
+                                </ul>
+                                <a id="wec-news-url" href="#" target="_blank" class="button button-secondary">
+                                    <span class="dashicons dashicons-external"></span>
+                                    <?php _e('Ver notícia original', 'whatsapp-evolution-clients'); ?>
+                                </a>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Seleção de interesses -->
-                    <div class="wec-interests-section">
-                        <h4><?php _e('Filtrar por Interesses', 'whatsapp-evolution-clients'); ?></h4>
-                        
-                        <div class="wec-interests-list">
-                            <?php if (!empty($interests)): ?>
-                                <?php foreach ($interests as $interest): ?>
-                                <label class="wec-interest-item">
-                                    <input type="checkbox" name="wec_interests[]" value="<?php echo esc_attr($interest['slug']); ?>">
-                                    <span class="wec-interest-name"><?php echo esc_html($interest['name']); ?></span>
-                                    <span class="wec-interest-count">(<?php echo $interest['leads_count']; ?>)</span>
-                                </label>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <p class="wec-no-interests"><?php _e('Nenhum interesse cadastrado.', 'whatsapp-evolution-clients'); ?></p>
-                            <?php endif; ?>
-                        </div>
-
+                    <!-- Tab 2: Seleção de Destinatários -->
+                    <div class="wec-tab-content" data-tab="interests">
+                        <!-- Opção enviar para todos -->
                         <label class="wec-send-all-option">
                             <input type="checkbox" id="wec-send-all" name="wec_send_all">
-                            <span><?php _e('Enviar para TODOS os contatos', 'whatsapp-evolution-clients'); ?></span>
-                            <span class="wec-total-count">(<?php echo $total_leads; ?> contatos)</span>
+                            <span class="wec-send-all-text">
+                                <strong><?php _e('Enviar para TODOS os contatos', 'whatsapp-evolution-clients'); ?></strong>
+                                <small><?php echo $total_leads; ?> contatos com WhatsApp válido</small>
+                            </span>
                         </label>
+
+                        <div class="wec-interests-wrapper" id="wec-interests-wrapper">
+                            <!-- Busca -->
+                            <div class="wec-search-box">
+                                <span class="dashicons dashicons-search"></span>
+                                <input type="text" id="wec-interest-search" placeholder="<?php _e('Buscar interesse...', 'whatsapp-evolution-clients'); ?>">
+                                <button type="button" id="wec-clear-search" class="wec-clear-btn" style="display:none;">&times;</button>
+                            </div>
+
+                            <!-- Ações rápidas -->
+                            <div class="wec-quick-actions">
+                                <button type="button" id="wec-select-all" class="button button-small">
+                                    <?php _e('Selecionar Todos', 'whatsapp-evolution-clients'); ?>
+                                </button>
+                                <button type="button" id="wec-deselect-all" class="button button-small">
+                                    <?php _e('Limpar Seleção', 'whatsapp-evolution-clients'); ?>
+                                </button>
+                                <span class="wec-selected-info">
+                                    <span id="wec-interests-selected">0</span> / <?php echo count($interests); ?> selecionados
+                                </span>
+                            </div>
+
+                            <!-- Lista de interesses -->
+                            <div class="wec-interests-list" id="wec-interests-list">
+                                <?php if (!empty($interests)): ?>
+                                    <?php foreach ($interests as $interest): ?>
+                                    <label class="wec-interest-item" data-name="<?php echo esc_attr(strtolower($interest['name'])); ?>">
+                                        <input type="checkbox" name="wec_interests[]" value="<?php echo esc_attr($interest['slug']); ?>" data-count="<?php echo $interest['leads_count']; ?>">
+                                        <span class="wec-interest-check"></span>
+                                        <span class="wec-interest-name"><?php echo esc_html($interest['name']); ?></span>
+                                        <span class="wec-interest-count"><?php echo $interest['leads_count']; ?> leads</span>
+                                    </label>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <div class="wec-no-interests">
+                                        <span class="dashicons dashicons-info"></span>
+                                        <p><?php _e('Nenhum interesse cadastrado.', 'whatsapp-evolution-clients'); ?></p>
+                                        <a href="<?php echo admin_url('edit-tags.php?taxonomy=wec_interest'); ?>" class="button">
+                                            <?php _e('Criar Interesses', 'whatsapp-evolution-clients'); ?>
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <!-- Sem resultados na busca -->
+                            <div class="wec-no-results" id="wec-no-results" style="display:none;">
+                                <span class="dashicons dashicons-search"></span>
+                                <p><?php _e('Nenhum interesse encontrado.', 'whatsapp-evolution-clients'); ?></p>
+                            </div>
+                        </div>
+
+                        <!-- Resumo de contatos -->
+                        <div class="wec-contacts-summary">
+                            <div class="wec-summary-number">
+                                <span id="wec-selected-count">0</span>
+                                <small><?php _e('contatos', 'whatsapp-evolution-clients'); ?></small>
+                            </div>
+                            <div class="wec-summary-list" id="wec-recipients-list">
+                                <p><?php _e('Selecione interesses para ver os contatos.', 'whatsapp-evolution-clients'); ?></p>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Configuração de delay -->
-                    <div class="wec-delay-section">
-                        <h4><?php _e('Intervalo entre Disparos', 'whatsapp-evolution-clients'); ?></h4>
-                        <div class="wec-delay-inputs">
-                            <label>
-                                <span><?php _e('Mínimo:', 'whatsapp-evolution-clients'); ?></span>
-                                <input type="number" id="wec-delay-min" value="4" min="2" max="60"> seg
-                            </label>
-                            <label>
-                                <span><?php _e('Máximo:', 'whatsapp-evolution-clients'); ?></span>
-                                <input type="number" id="wec-delay-max" value="20" min="5" max="120"> seg
-                            </label>
+                    <!-- Tab 3: Configurações -->
+                    <div class="wec-tab-content" data-tab="settings">
+                        <div class="wec-settings-section">
+                            <h4>
+                                <span class="dashicons dashicons-clock"></span>
+                                <?php _e('Intervalo entre Disparos', 'whatsapp-evolution-clients'); ?>
+                            </h4>
+                            <p class="wec-settings-desc">
+                                <?php _e('Define o intervalo aleatório entre cada envio para simular comportamento humanizado e evitar bloqueios.', 'whatsapp-evolution-clients'); ?>
+                            </p>
+                            <div class="wec-delay-inputs">
+                                <div class="wec-delay-field">
+                                    <label><?php _e('Mínimo', 'whatsapp-evolution-clients'); ?></label>
+                                    <div class="wec-input-group">
+                                        <input type="number" id="wec-delay-min" value="4" min="2" max="60">
+                                        <span>seg</span>
+                                    </div>
+                                </div>
+                                <div class="wec-delay-separator">~</div>
+                                <div class="wec-delay-field">
+                                    <label><?php _e('Máximo', 'whatsapp-evolution-clients'); ?></label>
+                                    <div class="wec-input-group">
+                                        <input type="number" id="wec-delay-max" value="20" min="5" max="120">
+                                        <span>seg</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="wec-delay-presets">
+                                <span><?php _e('Presets:', 'whatsapp-evolution-clients'); ?></span>
+                                <button type="button" class="wec-preset" data-min="2" data-max="5"><?php _e('Rápido', 'whatsapp-evolution-clients'); ?></button>
+                                <button type="button" class="wec-preset" data-min="4" data-max="20"><?php _e('Normal', 'whatsapp-evolution-clients'); ?></button>
+                                <button type="button" class="wec-preset" data-min="15" data-max="45"><?php _e('Seguro', 'whatsapp-evolution-clients'); ?></button>
+                            </div>
                         </div>
-                        <p class="wec-delay-tip">
-                            <?php _e('⏱️ O sistema escolhe um valor aleatório entre o mínimo e máximo para cada mensagem, simulando envio humanizado.', 'whatsapp-evolution-clients'); ?>
-                        </p>
                     </div>
 
-                    <!-- Resumo de destinatários -->
-                    <div class="wec-recipients-summary">
-                        <div class="wec-recipients-count">
-                            <span class="wec-count-number" id="wec-selected-count">0</span>
-                            <span class="wec-count-label"><?php _e('contatos selecionados', 'whatsapp-evolution-clients'); ?></span>
-                        </div>
-                        <div class="wec-recipients-list" id="wec-recipients-list">
-                            <p><?php _e('Selecione interesses para ver os contatos.', 'whatsapp-evolution-clients'); ?></p>
-                        </div>
-                    </div>
-
-                    <!-- Progresso do disparo -->
+                    <!-- Progresso do disparo (aparece sobre as tabs) -->
                     <div class="wec-dispatch-progress" id="wec-dispatch-progress" style="display:none;">
                         <h4><?php _e('Progresso do Disparo', 'whatsapp-evolution-clients'); ?></h4>
                         <div class="wec-progress-bar">
@@ -238,9 +337,11 @@ class WEC_News_Dispatcher
 
                 <div class="wec-modal-footer">
                     <input type="hidden" id="wec-news-post-id" value="">
+                    <input type="hidden" id="wec-news-title" value="">
+                    <input type="hidden" id="wec-news-excerpt" value="">
                     <button type="button" class="button wec-modal-cancel"><?php _e('Cancelar', 'whatsapp-evolution-clients'); ?></button>
                     <button type="button" class="button button-primary" id="wec-start-dispatch">
-                        <span class="dashicons dashicons-share" style="vertical-align:middle;margin-right:5px;"></span>
+                        <span class="dashicons dashicons-share"></span>
                         <?php _e('Iniciar Disparo', 'whatsapp-evolution-clients'); ?>
                     </button>
                     <button type="button" class="button" id="wec-pause-dispatch" style="display:none;">
