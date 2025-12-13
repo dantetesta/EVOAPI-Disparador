@@ -37,6 +37,7 @@ class WEC_Background_Dispatch
         // AJAX para iniciar disparo em background
         add_action('wp_ajax_wec_start_background_dispatch', [$this, 'ajax_start_background_dispatch']);
         add_action('wp_ajax_wec_get_dispatch_status', [$this, 'ajax_get_dispatch_status']);
+        add_action('wp_ajax_wec_process_next_item', [$this, 'ajax_process_next_item']);
     }
 
     /**
@@ -524,5 +525,79 @@ class WEC_Background_Dispatch
             'is_complete' => $batch->status === 'completed',
             'recent_logs' => $recent,
         ]);
+    }
+
+    /**
+     * AJAX: Processa próximo item da fila (fallback para WP Cron)
+     */
+    public function ajax_process_next_item(): void
+    {
+        if (!WEC_Security::verify_nonce($_POST['nonce'] ?? '')) {
+            wp_send_json_error(['message' => 'Nonce inválido']);
+        }
+
+        global $wpdb;
+        $batch_table = $wpdb->prefix . 'wec_dispatch_batches';
+        $queue_table = $wpdb->prefix . 'wec_dispatch_queue';
+
+        // Buscar batch ativo
+        $batch = $wpdb->get_row(
+            "SELECT * FROM $batch_table WHERE status IN ('processing', 'pending') ORDER BY created_at ASC LIMIT 1"
+        );
+
+        if (!$batch) {
+            wp_send_json_success(['message' => 'Nenhum disparo ativo', 'has_pending' => false]);
+            return;
+        }
+
+        // Buscar próximo item pendente
+        $item = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $queue_table WHERE batch_id = %d AND status = 'pending' ORDER BY id ASC LIMIT 1",
+            $batch->id
+        ));
+
+        if (!$item) {
+            // Batch completo
+            $wpdb->update($batch_table, ['status' => 'completed', 'completed_at' => current_time('mysql')], ['id' => $batch->id]);
+            wp_send_json_success(['message' => 'Batch completo', 'has_pending' => false, 'batch_completed' => true]);
+            return;
+        }
+
+        // Marcar como processing
+        $wpdb->update($queue_table, ['status' => 'processing'], ['id' => $item->id]);
+
+        // Enviar mensagem
+        $queue = WEC_Queue::instance();
+        $result = $this->send_news_message($batch, $item, $queue);
+
+        if ($result['success']) {
+            $wpdb->update($queue_table, [
+                'status' => 'sent',
+                'sent_at' => current_time('mysql'),
+            ], ['id' => $item->id]);
+            $queue->increment_batch_counter($batch->id, 'sent_count');
+            
+            wp_send_json_success([
+                'message' => "Enviado para {$item->lead_name}",
+                'status' => 'sent',
+                'lead_name' => $item->lead_name,
+                'has_pending' => true,
+            ]);
+        } else {
+            $wpdb->update($queue_table, [
+                'status' => 'failed',
+                'error_message' => $result['error'] ?? 'Erro desconhecido',
+                'sent_at' => current_time('mysql'),
+            ], ['id' => $item->id]);
+            $queue->increment_batch_counter($batch->id, 'failed_count');
+            
+            wp_send_json_success([
+                'message' => "Falha para {$item->lead_name}: " . ($result['error'] ?? 'Erro'),
+                'status' => 'failed',
+                'lead_name' => $item->lead_name,
+                'error' => $result['error'] ?? 'Erro desconhecido',
+                'has_pending' => true,
+            ]);
+        }
     }
 }

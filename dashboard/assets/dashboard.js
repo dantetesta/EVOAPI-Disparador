@@ -877,10 +877,36 @@
             .then(data => {
                 if (data.success) {
                     self.renderMonitorData(data.data);
+                    
+                    // Se há batches ativos, processar próximo item (fallback para cron)
+                    if (data.data.active_batches && data.data.active_batches.length > 0) {
+                        self.processNextItem();
+                    }
                 }
             })
             .catch(err => {
                 console.error('[WEC Monitor] Erro:', err);
+            });
+        },
+
+        // Processa próximo item da fila (fallback para WP Cron)
+        processNextItem: function() {
+            fetch(WEC_DASHBOARD.ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'wec_process_next_item',
+                    nonce: WEC_DASHBOARD.nonce
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.data.has_pending) {
+                    console.log('[WEC] Processado:', data.data.message);
+                }
+            })
+            .catch(err => {
+                console.error('[WEC] Erro ao processar item:', err);
             });
         },
 
