@@ -1301,3 +1301,337 @@ body {
         flex-direction: column;
     }
 }
+
+/* ============================================
+   PÁGINA DE CONTEÚDO (navegação)
+   ============================================ */
+.page-content {
+    display: none;
+}
+
+.page-content.active {
+    display: block;
+}
+
+/* ============================================
+   PÁGINA DE CONTATOS (LEADS)
+   ============================================ */
+.search-input-inline {
+    padding: 8px 15px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    width: 250px;
+}
+
+.search-input-inline:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.leads-table-wrapper {
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.leads-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leads-table th {
+    background: var(--bg-main);
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+}
+
+.leads-table td {
+    padding: 15px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+
+.leads-table tr:hover {
+    background: rgba(37, 211, 102, 0.03);
+}
+
+.lead-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.lead-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.leads-table code {
+    background: var(--bg-main);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.interest-tag {
+    display: inline-block;
+    background: rgba(37, 211, 102, 0.1);
+    color: var(--primary-dark);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin: 2px;
+}
+
+.no-interest {
+    color: var(--text-light);
+    font-size: 13px;
+}
+
+.no-data {
+    text-align: center;
+    color: var(--text-light);
+    padding: 40px !important;
+}
+
+/* ============================================
+   PÁGINA DE HISTÓRICO
+   ============================================ */
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.history-item {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--border);
+    transition: var(--transition);
+}
+
+.history-item:hover {
+    transform: translateX(5px);
+}
+
+.history-item.status-completed {
+    border-left-color: var(--primary);
+}
+
+.history-item.status-processing {
+    border-left-color: #f59e0b;
+}
+
+.history-item.status-failed,
+.history-item.status-cancelled {
+    border-left-color: #ef4444;
+}
+
+.history-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--bg-main);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--primary);
+}
+
+.history-info {
+    flex: 1;
+}
+
+.history-info h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.history-info p {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.history-stat {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.history-stat i {
+    font-size: 12px;
+}
+
+.history-meta {
+    text-align: right;
+}
+
+.history-status {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.history-status.status-completed {
+    background: rgba(37, 211, 102, 0.1);
+    color: var(--primary-dark);
+}
+
+.history-status.status-processing {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+}
+
+.history-status.status-pending {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+}
+
+.history-status.status-cancelled,
+.history-status.status-failed {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.history-date {
+    display: block;
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.no-history {
+    background: white;
+    border-radius: var(--radius);
+    padding: 60px 20px;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.no-history i {
+    font-size: 50px;
+    color: var(--text-light);
+    margin-bottom: 15px;
+}
+
+.no-history p {
+    color: var(--text-secondary);
+}
+
+/* ============================================
+   PÁGINA DE CONFIGURAÇÕES
+   ============================================ */
+.settings-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.settings-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 25px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.settings-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.settings-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.settings-card h3 i {
+    color: var(--primary);
+}
+
+.settings-card p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.btn-settings {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--primary);
+    color: white;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.btn-settings:hover {
+    background: var(--primary-dark);
+}
+
+/* Responsive para novas páginas */
+@media (max-width: 768px) {
+    .leads-table-wrapper {
+        overflow-x: auto;
+    }
+    
+    .leads-table {
+        min-width: 600px;
+    }
+    
+    .history-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .history-meta {
+        text-align: center;
+    }
+    
+    .history-info p {
+        justify-content: center;
+    }
+    
+    .settings-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-input-inline {
+        width: 100%;
+    }
+}

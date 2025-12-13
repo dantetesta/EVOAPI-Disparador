@@ -143,6 +143,10 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
 
         <!-- Content Area -->
         <div class="content-area">
+            
+            <!-- PAGE: POSTS -->
+            <div class="page-content active" data-page="posts">
+            
             <!-- Stats Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
@@ -255,6 +259,168 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                     <?php endif; ?>
                 </div>
             </div>
+            
+            </div><!-- END PAGE: POSTS -->
+            
+            <!-- PAGE: LEADS/CONTATOS -->
+            <div class="page-content" data-page="leads">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> Contatos</h2>
+                    <div class="section-actions">
+                        <input type="text" id="searchLeads" class="search-input-inline" placeholder="Buscar contato...">
+                    </div>
+                </div>
+                
+                <div class="leads-table-wrapper">
+                    <table class="leads-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>WhatsApp</th>
+                                <th>Interesses</th>
+                                <th>Cadastro</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leadsTableBody">
+                            <?php
+                            $leads_query = new WP_Query([
+                                'post_type' => WEC_CPT::POST_TYPE,
+                                'post_status' => 'publish',
+                                'posts_per_page' => 100,
+                                'orderby' => 'date',
+                                'order' => 'DESC',
+                            ]);
+                            if ($leads_query->have_posts()):
+                                while ($leads_query->have_posts()): $leads_query->the_post();
+                                    $phone = get_post_meta(get_the_ID(), '_wec_whatsapp_e164', true);
+                                    $lead_interests = wp_get_post_terms(get_the_ID(), 'wec_interest', ['fields' => 'names']);
+                            ?>
+                                <tr>
+                                    <td>
+                                        <div class="lead-name">
+                                            <div class="lead-avatar"><?php echo strtoupper(substr(get_the_title(), 0, 2)); ?></div>
+                                            <span><?php the_title(); ?></span>
+                                        </div>
+                                    </td>
+                                    <td><code><?php echo esc_html($phone ?: '-'); ?></code></td>
+                                    <td>
+                                        <?php if ($lead_interests): ?>
+                                            <?php foreach ($lead_interests as $int): ?>
+                                                <span class="interest-tag"><?php echo esc_html($int); ?></span>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <span class="no-interest">Nenhum</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?php echo get_the_date('d/m/Y'); ?></td>
+                                </tr>
+                            <?php
+                                endwhile;
+                                wp_reset_postdata();
+                            else:
+                            ?>
+                                <tr>
+                                    <td colspan="4" class="no-data">Nenhum contato cadastrado.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div><!-- END PAGE: LEADS -->
+            
+            <!-- PAGE: HISTÓRICO -->
+            <div class="page-content" data-page="history">
+                <div class="section-header">
+                    <h2><i class="fas fa-history"></i> Histórico de Disparos</h2>
+                </div>
+                
+                <div class="history-list" id="historyList">
+                    <?php
+                    global $wpdb;
+                    $batch_table = $wpdb->prefix . 'wec_dispatch_batches';
+                    $batches = $wpdb->get_results("SELECT * FROM $batch_table ORDER BY created_at DESC LIMIT 50");
+                    
+                    if ($batches):
+                        foreach ($batches as $batch):
+                            $status_class = $batch->status;
+                            $status_label = [
+                                'pending' => 'Pendente',
+                                'processing' => 'Processando',
+                                'paused' => 'Pausado',
+                                'completed' => 'Concluído',
+                                'cancelled' => 'Cancelado',
+                            ][$batch->status] ?? $batch->status;
+                    ?>
+                        <div class="history-item status-<?php echo $status_class; ?>">
+                            <div class="history-icon">
+                                <i class="fas fa-paper-plane"></i>
+                            </div>
+                            <div class="history-info">
+                                <h4><?php echo esc_html($batch->post_title); ?></h4>
+                                <p>
+                                    <span class="history-stat"><i class="fas fa-users"></i> <?php echo $batch->total_leads; ?> destinatários</span>
+                                    <span class="history-stat"><i class="fas fa-check"></i> <?php echo $batch->sent_count; ?> enviados</span>
+                                    <span class="history-stat"><i class="fas fa-times"></i> <?php echo $batch->failed_count; ?> falhas</span>
+                                </p>
+                            </div>
+                            <div class="history-meta">
+                                <span class="history-status status-<?php echo $status_class; ?>"><?php echo $status_label; ?></span>
+                                <span class="history-date"><?php echo date('d/m/Y H:i', strtotime($batch->created_at)); ?></span>
+                            </div>
+                        </div>
+                    <?php
+                        endforeach;
+                    else:
+                    ?>
+                        <div class="no-history">
+                            <i class="fas fa-inbox"></i>
+                            <p>Nenhum disparo realizado ainda.</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div><!-- END PAGE: HISTORY -->
+            
+            <!-- PAGE: CONFIGURAÇÕES -->
+            <div class="page-content" data-page="settings">
+                <div class="section-header">
+                    <h2><i class="fas fa-cog"></i> Configurações</h2>
+                </div>
+                
+                <div class="settings-cards">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-server"></i> Evolution API</h3>
+                        <p>Configure as credenciais da Evolution API para envio de mensagens.</p>
+                        <a href="<?php echo admin_url('admin.php?page=wec-settings'); ?>" target="_blank" class="btn-settings">
+                            <i class="fas fa-external-link-alt"></i> Abrir Configurações
+                        </a>
+                    </div>
+                    
+                    <div class="settings-card">
+                        <h3><i class="fas fa-users"></i> Gerenciar Contatos</h3>
+                        <p>Adicione, edite ou remova contatos do sistema.</p>
+                        <a href="<?php echo admin_url('edit.php?post_type=' . WEC_CPT::POST_TYPE); ?>" target="_blank" class="btn-settings">
+                            <i class="fas fa-external-link-alt"></i> Abrir Contatos
+                        </a>
+                    </div>
+                    
+                    <div class="settings-card">
+                        <h3><i class="fas fa-tags"></i> Gerenciar Interesses</h3>
+                        <p>Crie e gerencie categorias de interesses para segmentação.</p>
+                        <a href="<?php echo admin_url('edit-tags.php?taxonomy=wec_interest&post_type=' . WEC_CPT::POST_TYPE); ?>" target="_blank" class="btn-settings">
+                            <i class="fas fa-external-link-alt"></i> Abrir Interesses
+                        </a>
+                    </div>
+                    
+                    <div class="settings-card">
+                        <h3><i class="fab fa-wordpress"></i> Voltar ao WordPress</h3>
+                        <p>Acesse o painel administrativo completo do WordPress.</p>
+                        <a href="<?php echo admin_url(); ?>" class="btn-settings">
+                            <i class="fas fa-arrow-left"></i> Ir para WP Admin
+                        </a>
+                    </div>
+                </div>
+            </div><!-- END PAGE: SETTINGS -->
+            
         </div>
     </main>
 

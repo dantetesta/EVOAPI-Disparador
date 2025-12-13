@@ -38,6 +38,15 @@
                 document.querySelector('.sidebar').classList.toggle('active');
             });
 
+            // Navegação do menu lateral
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.dataset.page;
+                    self.navigateTo(page);
+                });
+            });
+
             // Search posts
             document.getElementById('searchPosts')?.addEventListener('input', function(e) {
                 self.filterPosts(e.target.value);
@@ -111,6 +120,33 @@
             // Pause/Cancel dispatch
             document.getElementById('btnPause')?.addEventListener('click', () => self.togglePause());
             document.getElementById('btnCancelDispatch')?.addEventListener('click', () => self.cancelDispatch());
+        },
+
+        // Navegar para uma página
+        navigateTo: function(page) {
+            console.log('[WEC Dashboard] Navegando para:', page);
+            
+            // Atualizar menu
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.page === page);
+            });
+            
+            // Atualizar páginas
+            document.querySelectorAll('.page-content').forEach(content => {
+                content.classList.toggle('active', content.dataset.page === page);
+            });
+            
+            // Atualizar título
+            const titles = {
+                'posts': 'Notícias para Disparo',
+                'leads': 'Contatos',
+                'history': 'Histórico de Disparos',
+                'settings': 'Configurações'
+            };
+            document.querySelector('.page-title').textContent = titles[page] || page;
+            
+            // Fechar sidebar no mobile
+            document.querySelector('.sidebar').classList.remove('active');
         },
 
         // Filter posts
