@@ -924,6 +924,11 @@
                                 <span class="stat error"><i class="fas fa-times"></i> ${batch.failed} falhas</span>
                                 <span class="stat pending"><i class="fas fa-clock"></i> ${batch.pending} pendentes</span>
                             </div>
+                            <div class="dispatch-actions">
+                                <button class="btn-delete-batch" onclick="Dashboard.deleteBatch(${batch.id})" title="Excluir disparo">
+                                    <i class="fas fa-trash"></i> Excluir
+                                </button>
+                            </div>
                         </div>
                     `;
                 });
@@ -976,6 +981,37 @@
                 'cancelled': 'Cancelado'
             };
             return labels[status] || status;
+        },
+
+        // Deletar batch (disparo)
+        deleteBatch: function(batchId) {
+            if (!confirm('Tem certeza que deseja excluir este disparo?\n\nIsso removerá todos os itens da fila associados.')) {
+                return;
+            }
+
+            fetch(WEC_DASHBOARD.ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'wec_delete_batch',
+                    nonce: WEC_DASHBOARD.nonce,
+                    batch_id: batchId
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Atualizar monitor
+                    this.updateMonitor();
+                    alert('Disparo excluído com sucesso!');
+                } else {
+                    alert(data.data?.message || 'Erro ao excluir disparo');
+                }
+            })
+            .catch(err => {
+                console.error('[WEC] Erro ao deletar batch:', err);
+                alert('Erro de conexão');
+            });
         }
     };
 

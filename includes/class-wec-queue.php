@@ -42,6 +42,7 @@ class WEC_Queue
         add_action('wp_ajax_wec_get_today_stats', [$this, 'ajax_get_today_stats']);
         add_action('wp_ajax_wec_cancel_dispatch', [$this, 'ajax_cancel_dispatch']);
         add_action('wp_ajax_wec_get_monitor_data', [$this, 'ajax_get_monitor_data']);
+        add_action('wp_ajax_wec_delete_batch', [$this, 'ajax_delete_batch']);
     }
 
     /**
@@ -1179,5 +1180,41 @@ class WEC_Queue
             'active_batches' => $batches_data,
             'recent_logs' => $logs_data,
         ]);
+    }
+
+    /**
+     * AJAX: Deleta um batch e seus itens de fila
+     */
+    public function ajax_delete_batch(): void
+    {
+        if (!WEC_Security::verify_nonce($_POST['nonce'] ?? '')) {
+            wp_send_json_error(['message' => 'Nonce inválido']);
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Sem permissão']);
+        }
+
+        $batch_id = intval($_POST['batch_id'] ?? 0);
+        
+        if (!$batch_id) {
+            wp_send_json_error(['message' => 'ID do batch inválido']);
+        }
+
+        global $wpdb;
+        $batch_table = $wpdb->prefix . self::BATCH_TABLE;
+        $queue_table = $wpdb->prefix . self::TABLE_NAME;
+
+        // Deletar itens da fila primeiro
+        $wpdb->delete($queue_table, ['batch_id' => $batch_id], ['%d']);
+
+        // Deletar o batch
+        $deleted = $wpdb->delete($batch_table, ['id' => $batch_id], ['%d']);
+
+        if ($deleted) {
+            wp_send_json_success(['message' => 'Disparo excluído com sucesso']);
+        } else {
+            wp_send_json_error(['message' => 'Erro ao excluir disparo']);
+        }
     }
 }

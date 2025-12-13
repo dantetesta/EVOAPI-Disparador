@@ -1632,6 +1632,50 @@ body {
 .dispatch-stats .stat.error { color: #ef4444; }
 .dispatch-stats .stat.pending { color: #6b7280; }
 
+.dispatch-actions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-delete-batch {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-delete-batch:hover {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-delete-history {
+    padding: 6px 10px;
+    background: transparent;
+    color: #9ca3af;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    margin-left: 10px;
+}
+
+.btn-delete-history:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
 .no-active-dispatch {
     text-align: center;
     padding: 40px 20px;

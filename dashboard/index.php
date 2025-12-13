@@ -583,6 +583,9 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                             <div class="history-meta">
                                 <span class="history-status status-<?php echo $status_class; ?>"><?php echo $status_label; ?></span>
                                 <span class="history-date"><?php echo date('d/m/Y H:i', strtotime($batch->created_at)); ?></span>
+                                <button class="btn-delete-history" onclick="Dashboard.deleteBatch(<?php echo $batch->id; ?>)" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </div>
                     <?php
