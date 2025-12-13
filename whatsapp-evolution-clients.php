@@ -3,7 +3,7 @@
  * Plugin Name: WhatsApp Evolution Clients
  * Plugin URI: https://dantetesta.com.br
  * Description: Gerenciamento de clientes com envio de mensagens WhatsApp via Evolution API
- * Version: 1.1.2
+ * Version: 1.2.0
  * Author: Dante Testa
  * Author URI: https://dantetesta.com.br
  * License: GPL v2 or later
@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes do plugin
-define('WEC_VERSION', '1.1.2');
+define('WEC_VERSION', '1.2.0');
 define('WEC_PLUGIN_FILE', __FILE__);
 define('WEC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WEC_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -76,10 +76,12 @@ final class WhatsApp_Evolution_Clients {
         require_once WEC_PLUGIN_DIR . 'includes/class-wec-settings.php';
         require_once WEC_PLUGIN_DIR . 'includes/class-wec-api.php';
         require_once WEC_PLUGIN_DIR . 'includes/class-wec-ajax.php';
+        require_once WEC_PLUGIN_DIR . 'includes/class-wec-queue.php';
 
         // Admin
         require_once WEC_PLUGIN_DIR . 'admin/class-wec-admin.php';
         require_once WEC_PLUGIN_DIR . 'admin/class-wec-list-actions.php';
+        require_once WEC_PLUGIN_DIR . 'admin/class-wec-news-dispatcher.php';
     }
 
     /**
@@ -126,10 +128,14 @@ final class WhatsApp_Evolution_Clients {
         // AJAX
         WEC_Ajax::instance();
         
+        // Queue (fila de disparos)
+        WEC_Queue::instance();
+        
         // Admin
         if (is_admin()) {
             WEC_Admin::instance();
             WEC_List_Actions::instance();
+            WEC_News_Dispatcher::instance();
         }
     }
 
@@ -142,6 +148,9 @@ final class WhatsApp_Evolution_Clients {
         
         // Registrar CPT para flush de rewrite rules
         WEC_CPT::register_post_type();
+        
+        // Criar tabelas de fila
+        WEC_Queue::create_tables();
         
         // Flush rewrite rules
         flush_rewrite_rules();

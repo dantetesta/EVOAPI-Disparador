@@ -51,13 +51,19 @@ class WEC_CPT
     const TAXONOMY = 'wec_client_category';
 
     /**
+     * Taxonomia de interesses (compartilhada com Posts)
+     */
+    const TAXONOMY_INTEREST = 'wec_interest';
+
+    /**
      * Construtor privado
      */
     private function __construct()
     {
-        // Registrar CPT e Taxonomia diretamente (já estamos no hook init)
+        // Registrar CPT e Taxonomias
         self::register_post_type();
         self::register_taxonomy();
+        self::register_interest_taxonomy();
 
         // Colunas personalizadas
         add_filter('manage_' . self::POST_TYPE . '_posts_columns', [$this, 'add_custom_columns']);
@@ -158,6 +164,41 @@ class WEC_CPT
         ];
 
         register_taxonomy(self::TAXONOMY, self::POST_TYPE, $args);
+    }
+
+    /**
+     * Registra a taxonomia de interesses (compartilhada com Posts)
+     */
+    public static function register_interest_taxonomy(): void
+    {
+        $labels = [
+            'name' => __('Interesses', 'whatsapp-evolution-clients'),
+            'singular_name' => __('Interesse', 'whatsapp-evolution-clients'),
+            'search_items' => __('Buscar Interesses', 'whatsapp-evolution-clients'),
+            'all_items' => __('Todos os Interesses', 'whatsapp-evolution-clients'),
+            'parent_item' => __('Interesse Pai', 'whatsapp-evolution-clients'),
+            'parent_item_colon' => __('Interesse Pai:', 'whatsapp-evolution-clients'),
+            'edit_item' => __('Editar Interesse', 'whatsapp-evolution-clients'),
+            'update_item' => __('Atualizar Interesse', 'whatsapp-evolution-clients'),
+            'add_new_item' => __('Adicionar Novo Interesse', 'whatsapp-evolution-clients'),
+            'new_item_name' => __('Nome do Novo Interesse', 'whatsapp-evolution-clients'),
+            'menu_name' => __('Interesses', 'whatsapp-evolution-clients'),
+        ];
+
+        $args = [
+            'labels' => $labels,
+            'hierarchical' => true,
+            'public' => false,
+            'show_ui' => true,
+            'show_in_menu' => true,
+            'show_in_nav_menus' => false,
+            'show_admin_column' => true,
+            'show_in_rest' => true,
+            'rewrite' => false,
+        ];
+
+        // Registra para Leads E Posts (compartilhada)
+        register_taxonomy(self::TAXONOMY_INTEREST, [self::POST_TYPE, 'post'], $args);
     }
 
     /**

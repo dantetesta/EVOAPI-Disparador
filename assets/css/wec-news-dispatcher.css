@@ -1,0 +1,433 @@
+/**
+ * WhatsApp Evolution Clients - News Dispatcher Styles
+ * @author Dante Testa <contato@dantetesta.com.br>
+ * @since 1.2.0
+ * @created 2025-12-12 21:30:00
+ */
+
+/* Modal Base */
+.wec-news-modal {
+    max-width: 700px;
+    width: 95%;
+}
+
+.wec-news-modal .wec-modal-body {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Preview da Notícia */
+.wec-news-preview {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    border-left: 4px solid #25D366;
+    margin-bottom: 20px;
+}
+
+.wec-news-preview-image {
+    width: 120px;
+    height: 80px;
+    background: #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wec-news-preview-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.wec-news-preview-image .dashicons {
+    font-size: 32px;
+    color: #adb5bd;
+}
+
+.wec-news-preview-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.wec-news-preview-content h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #212529;
+    line-height: 1.3;
+}
+
+.wec-news-preview-content p {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    color: #6c757d;
+    line-height: 1.4;
+}
+
+.wec-news-link {
+    font-size: 12px;
+    color: #25D366;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.wec-news-link:hover {
+    color: #128C7E;
+}
+
+/* Seção de Interesses */
+.wec-interests-section {
+    margin-bottom: 20px;
+}
+
+.wec-interests-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #343a40;
+}
+
+.wec-interests-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+    margin-bottom: 15px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.wec-interest-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #e9ecef;
+}
+
+.wec-interest-item:hover {
+    border-color: #25D366;
+    background: #f0fff4;
+}
+
+.wec-interest-item input[type="checkbox"] {
+    accent-color: #25D366;
+}
+
+.wec-interest-name {
+    flex: 1;
+    font-size: 13px;
+    color: #495057;
+}
+
+.wec-interest-count {
+    font-size: 11px;
+    color: #868e96;
+    background: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.wec-send-all-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wec-send-all-option:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+.wec-send-all-option input[type="checkbox"] {
+    accent-color: white;
+    width: 18px;
+    height: 18px;
+}
+
+.wec-send-all-option span {
+    font-weight: 500;
+}
+
+.wec-total-count {
+    margin-left: auto;
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+/* Seção de Delay */
+.wec-delay-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #fff3cd;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+.wec-delay-section h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #856404;
+}
+
+.wec-delay-inputs {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 10px;
+}
+
+.wec-delay-inputs label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #856404;
+}
+
+.wec-delay-inputs input[type="number"] {
+    width: 60px;
+    padding: 5px 8px;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.wec-delay-tip {
+    margin: 0;
+    font-size: 12px;
+    color: #856404;
+    opacity: 0.8;
+}
+
+/* Resumo de Destinatários */
+.wec-recipients-summary {
+    margin-bottom: 20px;
+}
+
+.wec-recipients-count {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.wec-count-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: #25D366;
+    line-height: 1;
+}
+
+.wec-count-label {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.wec-recipients-list {
+    max-height: 100px;
+    overflow-y: auto;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.wec-recipients-list .wec-lead-item {
+    display: inline-block;
+    padding: 3px 8px;
+    background: white;
+    border-radius: 4px;
+    margin: 2px;
+    border: 1px solid #e9ecef;
+}
+
+/* Progresso do Disparo */
+.wec-dispatch-progress {
+    padding: 20px;
+    background: #e8f5e9;
+    border-radius: 12px;
+    margin-top: 20px;
+}
+
+.wec-dispatch-progress h4 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2e7d32;
+}
+
+.wec-progress-bar {
+    height: 20px;
+    background: #c8e6c9;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.wec-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #25D366 0%, #128C7E 100%);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+    width: 0%;
+    position: relative;
+}
+
+.wec-progress-fill::after {
+    content: attr(data-percent);
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+}
+
+.wec-progress-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    font-size: 13px;
+}
+
+.wec-stat-sent {
+    color: #2e7d32;
+}
+
+.wec-stat-failed {
+    color: #c62828;
+}
+
+.wec-stat-pending {
+    color: #f57c00;
+}
+
+.wec-dispatch-log {
+    max-height: 150px;
+    overflow-y: auto;
+    background: white;
+    border-radius: 8px;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 11px;
+}
+
+.wec-log-item {
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+}
+
+.wec-log-item.sent {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.wec-log-item.failed {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.wec-log-item.processing {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.wec-next-dispatch {
+    margin-top: 10px;
+    padding: 10px;
+    background: #fff8e1;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 14px;
+    color: #f57c00;
+    font-weight: 500;
+}
+
+/* Modal Footer */
+.wec-news-modal .wec-modal-footer {
+    display: flex;
+    gap: 10px;
+    padding: 15px 20px;
+    border-top: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+
+.wec-news-modal .wec-modal-footer .wec-modal-cancel {
+    margin-right: auto;
+}
+
+#wec-start-dispatch {
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    border-color: #25D366;
+    color: white;
+}
+
+#wec-start-dispatch:hover {
+    background: linear-gradient(135deg, #128C7E 0%, #075E54 100%);
+}
+
+#wec-start-dispatch:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Animações */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.wec-dispatching {
+    animation: pulse 1.5s infinite;
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+    .wec-news-preview {
+        flex-direction: column;
+    }
+    
+    .wec-news-preview-image {
+        width: 100%;
+        height: 120px;
+    }
+    
+    .wec-interests-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .wec-delay-inputs {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .wec-progress-stats {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
