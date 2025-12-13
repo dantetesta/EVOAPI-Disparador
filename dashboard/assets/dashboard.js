@@ -1015,7 +1015,7 @@
                         <i class="fas fa-inbox"></i>
                         <p>Nenhum disparo em andamento</p>
                         <a href="#" class="btn-new-dispatch" onclick="Dashboard.navigateTo('posts'); return false;">
-                            <i class="fas fa-rocket"></i> Iniciar Novo Disparo
+                            Iniciar Novo Disparo
                         </a>
                     </div>
                 `;
