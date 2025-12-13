@@ -44,15 +44,21 @@ WEC_Queue::create_tables();
 // Dados do usuário atual
 $current_user = wp_get_current_user();
 
-// Buscar posts
+// Paginação de posts
+$posts_per_page = 12;
+$current_page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+
 $posts_args = [
     'post_type' => 'post',
     'post_status' => 'publish',
-    'posts_per_page' => 50,
+    'posts_per_page' => $posts_per_page,
+    'paged' => $current_page,
     'orderby' => 'date',
     'order' => 'DESC',
 ];
 $posts_query = new WP_Query($posts_args);
+$total_posts = $posts_query->found_posts;
+$total_pages = ceil($total_posts / $posts_per_page);
 
 // Buscar total de leads
 $leads_count = wp_count_posts(WEC_CPT::POST_TYPE);
@@ -349,6 +355,46 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                         </div>
                     <?php endif; ?>
                 </div>
+                
+                <?php if ($total_pages > 1): ?>
+                <!-- Paginação -->
+                <div class="pagination-wrapper">
+                    <div class="pagination-info">
+                        Mostrando <?php echo (($current_page - 1) * $posts_per_page) + 1; ?>-<?php echo min($current_page * $posts_per_page, $total_posts); ?> de <?php echo $total_posts; ?> notícias
+                    </div>
+                    <div class="pagination">
+                        <?php if ($current_page > 1): ?>
+                            <a href="?paged=1" class="page-btn" title="Primeira">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                            <a href="?paged=<?php echo $current_page - 1; ?>" class="page-btn" title="Anterior">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        <?php endif; ?>
+                        
+                        <?php
+                        $start_page = max(1, $current_page - 2);
+                        $end_page = min($total_pages, $current_page + 2);
+                        
+                        for ($i = $start_page; $i <= $end_page; $i++):
+                        ?>
+                            <a href="?paged=<?php echo $i; ?>" class="page-btn <?php echo $i === $current_page ? 'active' : ''; ?>">
+                                <?php echo $i; ?>
+                            </a>
+                        <?php endfor; ?>
+                        
+                        <?php if ($current_page < $total_pages): ?>
+                            <a href="?paged=<?php echo $current_page + 1; ?>" class="page-btn" title="Próxima">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                            <a href="?paged=<?php echo $total_pages; ?>" class="page-btn" title="Última">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+                
             </div>
             
             </div><!-- END PAGE: POSTS -->
