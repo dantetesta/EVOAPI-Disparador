@@ -97,7 +97,7 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
         <div class="sidebar-header">
             <div class="logo">
                 <i class="fab fa-whatsapp"></i>
-                <span>WEC Dispatcher</span>
+                <span>WP PostZap</span>
             </div>
         </div>
         
