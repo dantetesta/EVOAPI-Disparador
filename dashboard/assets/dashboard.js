@@ -743,8 +743,8 @@
                         }
                     }
 
-                    // Verificar se completou
-                    if (data.is_complete) {
+                    // Verificar se completou (só uma vez)
+                    if (data.is_complete && self.isDispatching) {
                         self.stopStatusPolling();
                         self.finishDispatch();
                     }
@@ -785,7 +785,11 @@
 
         // Finish dispatch
         finishDispatch: function() {
+            if (!this.isDispatching) return; // Evitar múltiplas chamadas
+            
             this.isDispatching = false;
+            this.currentBatchId = null;
+            this.stopStatusPolling(); // Garantir que polling parou
             this.addLogEntry('🎉 ' + WEC_DASHBOARD.i18n.dispatchComplete, 'success');
             
             // Update today stats
