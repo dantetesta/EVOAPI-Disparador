@@ -8,6 +8,8 @@
 (function() {
     'use strict';
 
+    console.log('[WEC Dashboard] Iniciando...');
+
     const Dashboard = {
         // State
         currentPost: null,
@@ -21,8 +23,10 @@
 
         // Init
         init: function() {
+            console.log('[WEC Dashboard] Init chamado');
             this.bindEvents();
             this.loadTodayStats();
+            console.log('[WEC Dashboard] Eventos bindados');
         },
 
         // Bind Events
@@ -40,10 +44,16 @@
             });
 
             // Dispatch buttons
-            document.querySelectorAll('.btn-dispatch, .btn-dispatch-small').forEach(btn => {
-                btn.addEventListener('click', function() {
+            const dispatchBtns = document.querySelectorAll('.btn-dispatch, .btn-dispatch-small');
+            console.log('[WEC Dashboard] Botões de disparo encontrados:', dispatchBtns.length);
+            
+            dispatchBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     const postId = this.dataset.postId;
                     const postTitle = this.dataset.postTitle;
+                    console.log('[WEC Dashboard] Clicou em disparar:', postId, postTitle);
                     self.openDispatchPanel(postId, postTitle);
                 });
             });
@@ -119,6 +129,7 @@
         // Open dispatch panel
         openDispatchPanel: function(postId, postTitle) {
             const self = this;
+            console.log('[WEC Dashboard] Abrindo painel para post:', postId);
             
             // Fetch post data
             fetch(WEC_DASHBOARD.ajaxUrl, {
@@ -132,12 +143,20 @@
             })
             .then(res => res.json())
             .then(data => {
+                console.log('[WEC Dashboard] Dados do post:', data);
                 if (data.success) {
                     self.currentPost = data.data;
                     self.updatePreview(data.data);
                     self.showPanel();
                     self.loadAllContacts();
+                } else {
+                    console.error('[WEC Dashboard] Erro ao buscar post:', data);
+                    alert('Erro ao carregar dados do post');
                 }
+            })
+            .catch(err => {
+                console.error('[WEC Dashboard] Erro fetch:', err);
+                alert('Erro de conexão: ' + err.message);
             });
         },
 
@@ -402,14 +421,14 @@
             }
         },
 
-        // Start dispatch
+        // Start dispatch (background)
         startDispatch: function() {
             if (this.selectedLeads.length === 0) {
                 alert(WEC_DASHBOARD.i18n.noRecipients);
                 return;
             }
 
-            if (!confirm(WEC_DASHBOARD.i18n.confirmDispatch.replace('%d', this.selectedLeads.length))) {
+            if (!confirm(WEC_DASHBOARD.i18n.confirmDispatch.replace('%d', this.selectedLeads.length) + '\n\nO disparo será processado em segundo plano. Você pode fechar esta janela.')) {
                 return;
             }
 
@@ -422,8 +441,9 @@
             const delayMin = parseInt(document.getElementById('delayMin')?.value) || 4;
             const delayMax = parseInt(document.getElementById('delayMax')?.value) || 20;
 
+            // Usar disparo em background
             const data = {
-                action: 'wec_create_news_dispatch',
+                action: 'wec_start_background_dispatch',
                 nonce: WEC_DASHBOARD.nonce,
                 post_id: this.currentPost.id,
                 delay_min: delayMin,
@@ -440,6 +460,8 @@
             }
 
             const self = this;
+            console.log('[WEC Dashboard] Iniciando disparo em background...', data);
+            
             fetch(WEC_DASHBOARD.ajaxUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -447,14 +469,22 @@
             })
             .then(res => res.json())
             .then(response => {
+                console.log('[WEC Dashboard] Resposta:', response);
                 if (response.success) {
                     self.currentBatchId = response.data.batch_id;
                     self.isDispatching = true;
                     self.showProgressPanel(response.data.total);
-                    self.processNextItem();
+                    self.addLogEntry('🚀 Disparo iniciado em background!', 'success');
+                    self.addLogEntry('Você pode fechar esta janela. O disparo continuará no servidor.', '');
+                    // Iniciar polling para atualizar status
+                    self.startStatusPolling();
                 } else {
                     alert(response.data?.message || 'Erro ao iniciar disparo');
                 }
+            })
+            .catch(err => {
+                console.error('[WEC Dashboard] Erro:', err);
+                alert('Erro de conexão: ' + err.message);
             });
         },
 
@@ -471,16 +501,32 @@
             this.failedItems = 0;
         },
 
-        // Process next item
-        processNextItem: function() {
-            if (!this.isDispatching || this.isPaused) return;
+        // Start status polling (para disparo em background)
+        startStatusPolling: function() {
+            const self = this;
+            this.pollingInterval = setInterval(() => {
+                self.checkDispatchStatus();
+            }, 3000); // Atualiza a cada 3 segundos
+        },
+
+        // Stop status polling
+        stopStatusPolling: function() {
+            if (this.pollingInterval) {
+                clearInterval(this.pollingInterval);
+                this.pollingInterval = null;
+            }
+        },
+
+        // Check dispatch status
+        checkDispatchStatus: function() {
+            if (!this.currentBatchId) return;
 
             const self = this;
             fetch(WEC_DASHBOARD.ajaxUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({
-                    action: 'wec_process_queue_item',
+                    action: 'wec_get_dispatch_status',
                     nonce: WEC_DASHBOARD.nonce,
                     batch_id: this.currentBatchId
                 })
@@ -488,23 +534,34 @@
             .then(res => res.json())
             .then(response => {
                 if (response.success) {
-                    if (response.data.completed) {
-                        self.finishDispatch();
-                        return;
+                    const data = response.data;
+                    
+                    // Atualizar contadores
+                    document.getElementById('sentCount').textContent = data.sent;
+                    document.getElementById('failedCount').textContent = data.failed;
+                    document.getElementById('remainingCount').textContent = data.pending;
+                    document.getElementById('progressBar').style.width = data.progress + '%';
+
+                    // Adicionar logs recentes
+                    if (data.recent_logs && data.recent_logs.length > 0) {
+                        const lastLog = data.recent_logs[0];
+                        if (lastLog && lastLog.lead_name !== self.lastLoggedName) {
+                            self.lastLoggedName = lastLog.lead_name;
+                            const status = lastLog.status === 'sent' ? 'success' : 'error';
+                            const icon = lastLog.status === 'sent' ? '✓' : '✗';
+                            self.addLogEntry(`${icon} ${lastLog.lead_name}`, status);
+                        }
                     }
 
-                    self.updateProgress(response.data);
-                    
-                    // Delay before next
-                    setTimeout(() => {
-                        self.processNextItem();
-                    }, response.data.delay * 1000);
-                } else {
-                    self.addLogEntry('Erro: ' + (response.data?.message || 'Desconhecido'), 'error');
+                    // Verificar se completou
+                    if (data.is_complete) {
+                        self.stopStatusPolling();
+                        self.finishDispatch();
+                    }
                 }
             })
             .catch(err => {
-                self.addLogEntry('Erro de conexão: ' + err.message, 'error');
+                console.error('[WEC Dashboard] Erro ao verificar status:', err);
             });
         },
 

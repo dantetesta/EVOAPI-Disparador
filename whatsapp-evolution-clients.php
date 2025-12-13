@@ -3,7 +3,7 @@
  * Plugin Name: WhatsApp Evolution Clients
  * Plugin URI: https://dantetesta.com.br
  * Description: Gerenciamento de clientes com envio de mensagens WhatsApp via Evolution API
- * Version: 1.5.0
+ * Version: 1.6.0
  * Author: Dante Testa
  * Author URI: https://dantetesta.com.br
  * License: GPL v2 or later
@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes do plugin
-define('WEC_VERSION', '1.5.0');
+define('WEC_VERSION', '1.6.0');
 define('WEC_PLUGIN_FILE', __FILE__);
 define('WEC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WEC_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -77,6 +77,7 @@ final class WhatsApp_Evolution_Clients {
         require_once WEC_PLUGIN_DIR . 'includes/class-wec-api.php';
         require_once WEC_PLUGIN_DIR . 'includes/class-wec-ajax.php';
         require_once WEC_PLUGIN_DIR . 'includes/class-wec-queue.php';
+        require_once WEC_PLUGIN_DIR . 'includes/class-wec-background-dispatch.php';
 
         // Admin
         require_once WEC_PLUGIN_DIR . 'admin/class-wec-admin.php';
@@ -130,6 +131,9 @@ final class WhatsApp_Evolution_Clients {
         
         // Queue (fila de disparos)
         WEC_Queue::instance();
+        
+        // Background Dispatch (disparo em segundo plano)
+        WEC_Background_Dispatch::instance();
         
         // Admin
         if (is_admin()) {
