@@ -121,7 +121,14 @@ class WEC_Queue
             wp_send_json_error(['message' => 'Sem permissão']);
         }
 
-        $interests = isset($_POST['interests']) ? array_map('sanitize_text_field', $_POST['interests']) : [];
+        // Interesses podem vir como JSON string ou array
+        $interests_raw = $_POST['interests'] ?? [];
+        if (is_string($interests_raw)) {
+            $interests = json_decode(stripslashes($interests_raw), true) ?: [];
+        } else {
+            $interests = array_map('sanitize_text_field', $interests_raw);
+        }
+        
         $send_all = isset($_POST['send_all']) && $_POST['send_all'] === 'true';
 
         $leads = $this->get_leads_by_interests($interests, $send_all);
