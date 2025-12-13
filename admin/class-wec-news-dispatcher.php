@@ -178,37 +178,40 @@ class WEC_News_Dispatcher
             <div class="wec-offcanvas-body">
                     <!-- Tab 1: Preview da Mensagem -->
                     <div class="wec-tab-content active" data-tab="preview">
-                        <div class="wec-preview-container">
-                            <div class="wec-phone-mockup">
-                                <div class="wec-phone-header">
-                                    <span class="wec-phone-avatar">📰</span>
-                                    <span class="wec-phone-name">Sua Notícia</span>
-                                </div>
-                                <div class="wec-phone-body">
-                                    <div class="wec-whatsapp-message">
-                                        <div class="wec-msg-image" id="wec-preview-image">
-                                            <span class="dashicons dashicons-format-image"></span>
+                        <div class="wec-preview-centered">
+                            <div class="wec-iphone-frame">
+                                <div class="wec-iphone-notch"></div>
+                                <div class="wec-iphone-screen">
+                                    <div class="wec-wa-header">
+                                        <span class="wec-wa-back">←</span>
+                                        <div class="wec-wa-avatar">📰</div>
+                                        <div class="wec-wa-contact">
+                                            <strong><?php _e('Sua Notícia', 'whatsapp-evolution-clients'); ?></strong>
+                                            <small>online</small>
                                         </div>
-                                        <div class="wec-msg-title" id="wec-preview-title">Título da Notícia</div>
-                                        <div class="wec-msg-text" id="wec-preview-excerpt">Resumo da notícia aparecerá aqui...</div>
-                                        <div class="wec-msg-link">🔗 <span id="wec-preview-url">link-da-noticia.com</span></div>
-                                        <div class="wec-msg-time">Agora</div>
+                                        <span class="wec-wa-icons">📞 📹 ⋮</span>
+                                    </div>
+                                    <div class="wec-wa-chat">
+                                        <div class="wec-wa-bubble">
+                                            <div class="wec-wa-img" id="wec-preview-image">
+                                                <span class="dashicons dashicons-format-image"></span>
+                                            </div>
+                                            <div class="wec-wa-title" id="wec-preview-title">Título da Notícia</div>
+                                            <div class="wec-wa-text" id="wec-preview-excerpt">Resumo da notícia aparecerá aqui...</div>
+                                            <div class="wec-wa-link">🔗 <span id="wec-preview-url">link-da-noticia.com</span></div>
+                                            <div class="wec-wa-meta">
+                                                <span class="wec-wa-time">Agora</span>
+                                                <span class="wec-wa-check">✓✓</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="wec-iphone-home"></div>
                             </div>
-                            <div class="wec-preview-info">
-                                <h4><?php _e('A mensagem enviada será:', 'whatsapp-evolution-clients'); ?></h4>
-                                <ul>
-                                    <li>📷 <?php _e('Imagem de capa do post', 'whatsapp-evolution-clients'); ?></li>
-                                    <li>📝 <?php _e('Título em negrito', 'whatsapp-evolution-clients'); ?></li>
-                                    <li>📄 <?php _e('Resumo (excerpt)', 'whatsapp-evolution-clients'); ?></li>
-                                    <li>🔗 <?php _e('Link da notícia', 'whatsapp-evolution-clients'); ?></li>
-                                </ul>
-                                <a id="wec-news-url" href="#" target="_blank" class="button button-secondary">
-                                    <span class="dashicons dashicons-external"></span>
-                                    <?php _e('Ver notícia original', 'whatsapp-evolution-clients'); ?>
-                                </a>
-                            </div>
+                            <a id="wec-news-url" href="#" target="_blank" class="wec-preview-link">
+                                <span class="dashicons dashicons-external"></span>
+                                <?php _e('Ver notícia original', 'whatsapp-evolution-clients'); ?>
+                            </a>
                         </div>
                     </div>
 

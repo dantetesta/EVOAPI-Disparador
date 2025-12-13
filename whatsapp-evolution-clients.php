@@ -3,7 +3,7 @@
  * Plugin Name: WhatsApp Evolution Clients
  * Plugin URI: https://dantetesta.com.br
  * Description: Gerenciamento de clientes com envio de mensagens WhatsApp via Evolution API
- * Version: 1.3.1
+ * Version: 1.3.2
  * Author: Dante Testa
  * Author URI: https://dantetesta.com.br
  * License: GPL v2 or later
@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes do plugin
-define('WEC_VERSION', '1.3.1');
+define('WEC_VERSION', '1.3.2');
 define('WEC_PLUGIN_FILE', __FILE__);
 define('WEC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WEC_PLUGIN_URL', plugin_dir_url(__FILE__));
