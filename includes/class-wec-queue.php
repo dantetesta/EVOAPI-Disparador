@@ -31,6 +31,7 @@ class WEC_Queue
     {
         // AJAX handlers
         add_action('wp_ajax_wec_get_leads_by_interest', [$this, 'ajax_get_leads_by_interest']);
+        add_action('wp_ajax_wec_get_all_contacts', [$this, 'ajax_get_all_contacts']);
         add_action('wp_ajax_wec_create_news_dispatch', [$this, 'ajax_create_news_dispatch']);
         add_action('wp_ajax_wec_process_queue_item', [$this, 'ajax_process_queue_item']);
         add_action('wp_ajax_wec_get_batch_status', [$this, 'ajax_get_batch_status']);
@@ -128,6 +129,96 @@ class WEC_Queue
     }
 
     /**
+     * AJAX: Busca todos os contatos para seleção individual
+     */
+    public function ajax_get_all_contacts(): void
+    {
+        if (!WEC_Security::verify_nonce($_POST['nonce'] ?? '')) {
+            wp_send_json_error(['message' => 'Nonce inválido']);
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Sem permissão']);
+        }
+
+        $args = [
+            'post_type' => WEC_CPT::POST_TYPE,
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'orderby' => 'title',
+            'order' => 'ASC',
+            'meta_query' => [
+                [
+                    'key' => '_wec_whatsapp_e164',
+                    'value' => '',
+                    'compare' => '!='
+                ]
+            ]
+        ];
+
+        $query = new WP_Query($args);
+        $contacts = [];
+
+        foreach ($query->posts as $post) {
+            $phone = get_post_meta($post->ID, '_wec_whatsapp_e164', true);
+            if (!empty($phone)) {
+                $contacts[] = [
+                    'id' => $post->ID,
+                    'name' => $post->post_title,
+                    'phone' => $phone,
+                    'initials' => strtoupper(substr($post->post_title, 0, 2)),
+                ];
+            }
+        }
+
+        wp_send_json_success([
+            'contacts' => $contacts,
+            'total' => count($contacts),
+        ]);
+    }
+
+    /**
+     * Busca leads por IDs específicos (seleção individual)
+     */
+    public function get_leads_by_ids(array $lead_ids): array
+    {
+        if (empty($lead_ids)) {
+            return [];
+        }
+
+        $args = [
+            'post_type' => WEC_CPT::POST_TYPE,
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'post__in' => $lead_ids,
+            'orderby' => 'post__in',
+            'meta_query' => [
+                [
+                    'key' => '_wec_whatsapp_e164',
+                    'value' => '',
+                    'compare' => '!='
+                ]
+            ]
+        ];
+
+        $query = new WP_Query($args);
+        $leads = [];
+
+        foreach ($query->posts as $post) {
+            $phone = get_post_meta($post->ID, '_wec_whatsapp_e164', true);
+            if (!empty($phone)) {
+                $leads[] = [
+                    'id' => $post->ID,
+                    'name' => $post->post_title,
+                    'phone' => $phone,
+                ];
+            }
+        }
+
+        return $leads;
+    }
+
+    /**
      * Busca leads por interesses
      */
     public function get_leads_by_interests(array $interests = [], bool $send_all = false): array
@@ -192,6 +283,8 @@ class WEC_Queue
         $post_id = intval($_POST['post_id'] ?? 0);
         $interests = isset($_POST['interests']) ? array_map('sanitize_text_field', $_POST['interests']) : [];
         $send_all = isset($_POST['send_all']) && $_POST['send_all'] === 'true';
+        $selection_mode = sanitize_text_field($_POST['selection_mode'] ?? 'interests');
+        $lead_ids = isset($_POST['lead_ids']) ? array_map('intval', (array)$_POST['lead_ids']) : [];
         $delay_min = intval($_POST['delay_min'] ?? 4);
         $delay_max = intval($_POST['delay_max'] ?? 20);
 
@@ -204,8 +297,13 @@ class WEC_Queue
             wp_send_json_error(['message' => 'Post não encontrado']);
         }
 
-        // Buscar leads
-        $leads = $this->get_leads_by_interests($interests, $send_all);
+        // Buscar leads baseado no modo de seleção
+        if ($selection_mode === 'individual' && !empty($lead_ids)) {
+            $leads = $this->get_leads_by_ids($lead_ids);
+        } else {
+            $leads = $this->get_leads_by_interests($interests, $send_all);
+        }
+        
         if (empty($leads)) {
             wp_send_json_error(['message' => 'Nenhum lead encontrado']);
         }

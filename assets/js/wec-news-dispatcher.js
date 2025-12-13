@@ -2,7 +2,7 @@
  * WhatsApp Evolution Clients - News Dispatcher
  * @author Dante Testa <contato@dantetesta.com.br>
  * @since 1.2.0
- * @updated 2025-12-12 22:30:00
+ * @updated 2025-12-13 00:15:00
  */
 
 (function($) {
@@ -14,6 +14,9 @@
         isDispatching: false,
         isPaused: false,
         selectedLeads: [],
+        allContacts: [],
+        selectedContacts: [],
+        selectionMode: 'interests',
 
         init: function() {
             this.bindEvents();
@@ -22,24 +25,24 @@
         bindEvents: function() {
             const self = this;
 
-            // Abrir modal ao clicar no botão WhatsApp
+            // Abrir off-canvas ao clicar no botão WhatsApp
             $(document).on('click', '.wec-news-dispatch-btn', function(e) {
                 e.preventDefault();
                 const postData = $(this).data('post');
-                self.openModal(postData);
+                self.openPanel(postData);
             });
 
-            // Fechar modal
-            $(document).on('click', '.wec-modal-overlay, .wec-modal-close, .wec-modal-cancel', function() {
+            // Fechar off-canvas
+            $(document).on('click', '.wec-offcanvas-overlay, .wec-offcanvas-close, .wec-offcanvas-cancel', function() {
                 if (!self.isDispatching) {
-                    self.closeModal();
+                    self.closePanel();
                 }
             });
 
             // ESC para fechar
             $(document).on('keydown', function(e) {
                 if (e.key === 'Escape' && !self.isDispatching) {
-                    self.closeModal();
+                    self.closePanel();
                 }
             });
 
@@ -49,9 +52,20 @@
                 self.switchTab(tab);
             });
 
+            // Modo de seleção (por interesse ou individual)
+            $(document).on('click', '.wec-mode-btn', function() {
+                const mode = $(this).data('mode');
+                self.switchSelectionMode(mode);
+            });
+
             // Busca de interesses
             $(document).on('input', '#wec-interest-search', function() {
                 self.filterInterests($(this).val());
+            });
+
+            // Busca de contatos individuais
+            $(document).on('input', '#wec-contact-search', function() {
+                self.filterContacts($(this).val());
             });
 
             // Limpar busca
@@ -59,18 +73,33 @@
                 $('#wec-interest-search').val('').trigger('input');
             });
 
-            // Selecionar todos
+            // Selecionar todos interesses
             $(document).on('click', '#wec-select-all', function() {
                 $('.wec-interest-item:visible input[type="checkbox"]').prop('checked', true);
                 self.updateInterestCount();
                 self.updateRecipients();
             });
 
-            // Limpar seleção
+            // Limpar seleção interesses
             $(document).on('click', '#wec-deselect-all', function() {
                 $('input[name="wec_interests[]"]').prop('checked', false);
                 self.updateInterestCount();
                 self.updateRecipients();
+            });
+
+            // Selecionar todos contatos
+            $(document).on('click', '#wec-select-all-contacts', function() {
+                self.selectAllContacts();
+            });
+
+            // Limpar seleção contatos
+            $(document).on('click', '#wec-deselect-all-contacts, #wec-clear-contacts', function() {
+                self.clearContactSelection();
+            });
+
+            // Clique em contato individual
+            $(document).on('click', '.wec-contact-item', function() {
+                self.toggleContact($(this));
             });
 
             // Checkbox de interesses
@@ -82,7 +111,8 @@
             // Checkbox enviar para todos
             $(document).on('change', '#wec-send-all', function() {
                 const isChecked = $(this).is(':checked');
-                $('#wec-interests-wrapper').toggleClass('disabled', isChecked);
+                $('#wec-selection-mode').toggleClass('disabled', isChecked);
+                $('#wec-interests-wrapper, #wec-contacts-selection').toggleClass('disabled', isChecked);
                 self.updateRecipients();
             });
 
@@ -146,7 +176,140 @@
             $('#wec-tab-badge').text(count).toggle(count > 0);
         },
 
-        openModal: function(postData) {
+        // Alternar modo de seleção
+        switchSelectionMode: function(mode) {
+            this.selectionMode = mode;
+            $('#wec-selection-mode').val(mode);
+            
+            $('.wec-mode-btn').removeClass('active');
+            $('.wec-mode-btn[data-mode="' + mode + '"]').addClass('active');
+            
+            if (mode === 'interests') {
+                $('#wec-interests-wrapper').addClass('active');
+                $('#wec-contacts-selection').removeClass('active');
+            } else {
+                $('#wec-interests-wrapper').removeClass('active');
+                $('#wec-contacts-selection').addClass('active');
+                this.loadAllContacts();
+            }
+            
+            this.updateRecipients();
+        },
+
+        // Carregar todos os contatos
+        loadAllContacts: function() {
+            const self = this;
+            
+            if (this.allContacts.length > 0) {
+                this.renderContacts();
+                return;
+            }
+
+            $('#wec-contacts-list').html('<div class="wec-contacts-empty"><span class="dashicons dashicons-update spin"></span><p>Carregando contatos...</p></div>');
+
+            $.ajax({
+                url: wecNewsDispatcher.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'wec_get_all_contacts',
+                    nonce: wecNewsDispatcher.nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        self.allContacts = response.data.contacts;
+                        self.renderContacts();
+                    } else {
+                        $('#wec-contacts-list').html('<div class="wec-contacts-empty"><p>Erro ao carregar contatos.</p></div>');
+                    }
+                }
+            });
+        },
+
+        // Renderizar lista de contatos
+        renderContacts: function() {
+            const self = this;
+            let html = '';
+
+            this.allContacts.forEach(function(contact) {
+                const isSelected = self.selectedContacts.includes(contact.id);
+                html += '<div class="wec-contact-item' + (isSelected ? ' selected' : '') + '" data-id="' + contact.id + '" data-name="' + contact.name.toLowerCase() + '" data-phone="' + contact.phone + '">';
+                html += '<span class="wec-contact-check"></span>';
+                html += '<span class="wec-contact-avatar">' + contact.initials + '</span>';
+                html += '<div class="wec-contact-info">';
+                html += '<div class="wec-contact-name">' + contact.name + '</div>';
+                html += '<div class="wec-contact-phone">' + contact.phone + '</div>';
+                html += '</div>';
+                html += '</div>';
+            });
+
+            if (html === '') {
+                html = '<div class="wec-contacts-empty"><p>Nenhum contato encontrado.</p></div>';
+            }
+
+            $('#wec-contacts-list').html(html);
+            this.updateContactsInfo();
+        },
+
+        // Filtrar contatos
+        filterContacts: function(search) {
+            const term = search.toLowerCase().trim();
+            
+            $('.wec-contact-item').each(function() {
+                const name = $(this).data('name');
+                const phone = $(this).data('phone');
+                const matches = !term || name.indexOf(term) !== -1 || phone.indexOf(term) !== -1;
+                $(this).toggle(matches);
+            });
+        },
+
+        // Toggle seleção de contato
+        toggleContact: function($item) {
+            const id = parseInt($item.data('id'));
+            const index = this.selectedContacts.indexOf(id);
+            
+            if (index > -1) {
+                this.selectedContacts.splice(index, 1);
+                $item.removeClass('selected');
+            } else {
+                this.selectedContacts.push(id);
+                $item.addClass('selected');
+            }
+            
+            this.updateContactsInfo();
+            this.updateRecipients();
+        },
+
+        // Selecionar todos contatos
+        selectAllContacts: function() {
+            const self = this;
+            this.selectedContacts = [];
+            
+            $('.wec-contact-item:visible').each(function() {
+                const id = parseInt($(this).data('id'));
+                self.selectedContacts.push(id);
+                $(this).addClass('selected');
+            });
+            
+            this.updateContactsInfo();
+            this.updateRecipients();
+        },
+
+        // Limpar seleção de contatos
+        clearContactSelection: function() {
+            this.selectedContacts = [];
+            $('.wec-contact-item').removeClass('selected');
+            this.updateContactsInfo();
+            this.updateRecipients();
+        },
+
+        // Atualizar info de contatos selecionados
+        updateContactsInfo: function() {
+            const count = this.selectedContacts.length;
+            $('#wec-individual-count').text(count);
+            $('#wec-selected-contacts-info').toggle(count > 0);
+        },
+
+        openPanel: function(postData) {
             this.currentPost = postData;
             
             // Preencher preview do telefone
@@ -174,10 +337,15 @@
             }
 
             // Reset
+            this.selectionMode = 'interests';
+            this.selectedContacts = [];
             $('input[name="wec_interests[]"]').prop('checked', false);
             $('#wec-send-all').prop('checked', false);
-            $('#wec-interests-wrapper').removeClass('disabled');
+            $('#wec-interests-wrapper').addClass('active');
+            $('#wec-contacts-selection').removeClass('active');
+            $('.wec-mode-btn').removeClass('active').filter('[data-mode="interests"]').addClass('active');
             $('#wec-interest-search').val('');
+            $('#wec-contact-search').val('');
             $('#wec-clear-search').hide();
             $('.wec-interest-item').removeClass('hidden');
             $('#wec-no-results').hide();
@@ -187,48 +355,111 @@
             $('#wec-selected-count').text('0');
             $('#wec-tab-badge').text('0').hide();
             $('#wec-interests-selected').text('0');
-            $('#wec-recipients-list').html('<p>Selecione interesses para ver os contatos.</p>');
+            $('#wec-recipients-list').html('<p>Selecione destinatários acima.</p>');
             $('#wec-dispatch-progress').hide();
+            $('.wec-tabs, .wec-tab-content').show();
             $('#wec-start-dispatch').show().prop('disabled', false);
             $('#wec-pause-dispatch, #wec-cancel-dispatch').hide();
-            $('.wec-modal-cancel').show().text('Cancelar');
+            $('.wec-offcanvas-cancel').show().text('Fechar');
 
             // Ir para primeira tab
             this.switchTab('preview');
 
-            // Mostrar modal
-            $('#wec-news-dispatch-modal').addClass('active');
+            // Mostrar off-canvas
+            $('#wec-offcanvas-overlay').addClass('active');
+            $('#wec-news-dispatch-panel').addClass('active');
         },
 
-        closeModal: function() {
-            $('#wec-news-dispatch-modal').removeClass('active');
+        closePanel: function() {
+            $('#wec-offcanvas-overlay').removeClass('active');
+            $('#wec-news-dispatch-panel').removeClass('active');
             this.currentPost = null;
             this.currentBatchId = null;
             this.isDispatching = false;
             this.isPaused = false;
             this.selectedLeads = [];
+            this.selectedContacts = [];
         },
 
         updateRecipients: function() {
             const self = this;
             const sendAll = $('#wec-send-all').is(':checked');
-            const interests = [];
 
-            if (!sendAll) {
-                $('input[name="wec_interests[]"]:checked').each(function() {
-                    interests.push($(this).val());
+            // Se é "enviar para todos"
+            if (sendAll) {
+                $.ajax({
+                    url: wecNewsDispatcher.ajaxUrl,
+                    type: 'POST',
+                    data: {
+                        action: 'wec_get_leads_by_interest',
+                        nonce: wecNewsDispatcher.nonce,
+                        interests: [],
+                        send_all: 'true'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            self.selectedLeads = response.data.leads;
+                            $('#wec-selected-count').text(response.data.total);
+                            $('#wec-tab-badge').text(response.data.total).show();
+                            let html = '';
+                            response.data.leads.slice(0, 10).forEach(function(lead) {
+                                html += '<span class="wec-lead-item">' + lead.name + '</span>';
+                            });
+                            if (response.data.leads.length > 10) {
+                                html += '<span class="wec-lead-item">+' + (response.data.leads.length - 10) + ' mais</span>';
+                            }
+                            $('#wec-recipients-list').html(html || '<p>Nenhum contato.</p>');
+                        }
+                    }
                 });
+                return;
             }
 
-            // Se não tem seleção e não é "todos", limpar
-            if (!sendAll && interests.length === 0) {
+            // Modo seleção individual
+            if (this.selectionMode === 'individual') {
+                const count = this.selectedContacts.length;
+                this.selectedLeads = [];
+                
+                // Converter IDs selecionados para objetos lead
+                this.selectedContacts.forEach(function(id) {
+                    const contact = self.allContacts.find(c => c.id === id);
+                    if (contact) {
+                        self.selectedLeads.push(contact);
+                    }
+                });
+
+                $('#wec-selected-count').text(count);
+                $('#wec-tab-badge').text(count).toggle(count > 0);
+
+                if (count > 0) {
+                    let html = '';
+                    this.selectedLeads.slice(0, 10).forEach(function(lead) {
+                        html += '<span class="wec-lead-item">' + lead.name + '</span>';
+                    });
+                    if (count > 10) {
+                        html += '<span class="wec-lead-item">+' + (count - 10) + ' mais</span>';
+                    }
+                    $('#wec-recipients-list').html(html);
+                } else {
+                    $('#wec-recipients-list').html('<p>Selecione contatos acima.</p>');
+                }
+                return;
+            }
+
+            // Modo seleção por interesse
+            const interests = [];
+            $('input[name="wec_interests[]"]:checked').each(function() {
+                interests.push($(this).val());
+            });
+
+            if (interests.length === 0) {
                 $('#wec-selected-count').text('0');
-                $('#wec-recipients-list').html('<p>Selecione interesses para ver os contatos.</p>');
+                $('#wec-tab-badge').text('0').hide();
+                $('#wec-recipients-list').html('<p>Selecione interesses acima.</p>');
                 this.selectedLeads = [];
                 return;
             }
 
-            // Buscar leads
             $.ajax({
                 url: wecNewsDispatcher.ajaxUrl,
                 type: 'POST',
@@ -236,19 +467,22 @@
                     action: 'wec_get_leads_by_interest',
                     nonce: wecNewsDispatcher.nonce,
                     interests: interests,
-                    send_all: sendAll ? 'true' : 'false'
+                    send_all: 'false'
                 },
                 success: function(response) {
                     if (response.success) {
                         self.selectedLeads = response.data.leads;
                         $('#wec-selected-count').text(response.data.total);
+                        $('#wec-tab-badge').text(response.data.total).toggle(response.data.total > 0);
 
-                        // Mostrar lista de leads
                         if (response.data.leads.length > 0) {
                             let html = '';
-                            response.data.leads.forEach(function(lead) {
+                            response.data.leads.slice(0, 10).forEach(function(lead) {
                                 html += '<span class="wec-lead-item">' + lead.name + '</span>';
                             });
+                            if (response.data.leads.length > 10) {
+                                html += '<span class="wec-lead-item">+' + (response.data.leads.length - 10) + ' mais</span>';
+                            }
                             $('#wec-recipients-list').html(html);
                         } else {
                             $('#wec-recipients-list').html('<p>' + wecNewsDispatcher.i18n.noLeads + '</p>');
@@ -263,7 +497,7 @@
 
             // Validar seleção
             if (this.selectedLeads.length === 0) {
-                alert(wecNewsDispatcher.i18n.selectInterest);
+                alert('Selecione ao menos um destinatário.');
                 return;
             }
 
@@ -282,19 +516,29 @@
             const delayMin = parseInt($('#wec-delay-min').val()) || 4;
             const delayMax = parseInt($('#wec-delay-max').val()) || 20;
 
+            // Dados do disparo
+            const dispatchData = {
+                action: 'wec_create_news_dispatch',
+                nonce: wecNewsDispatcher.nonce,
+                post_id: this.currentPost.id,
+                delay_min: delayMin,
+                delay_max: delayMax,
+                selection_mode: this.selectionMode
+            };
+
+            if (sendAll) {
+                dispatchData.send_all = 'true';
+            } else if (this.selectionMode === 'individual') {
+                dispatchData.lead_ids = this.selectedContacts;
+            } else {
+                dispatchData.interests = interests;
+            }
+
             // Criar disparo
             $.ajax({
                 url: wecNewsDispatcher.ajaxUrl,
                 type: 'POST',
-                data: {
-                    action: 'wec_create_news_dispatch',
-                    nonce: wecNewsDispatcher.nonce,
-                    post_id: this.currentPost.id,
-                    interests: interests,
-                    send_all: sendAll ? 'true' : 'false',
-                    delay_min: delayMin,
-                    delay_max: delayMax
-                },
+                data: dispatchData,
                 success: function(response) {
                     if (response.success) {
                         self.currentBatchId = response.data.batch_id;
