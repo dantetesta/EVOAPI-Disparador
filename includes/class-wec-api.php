@@ -486,16 +486,14 @@ class WEC_API
         // Endpoint da Evolution API para envio de mídia
         $endpoint = $api_url . '/message/sendMedia/' . $instance;
 
-        // Payload com base64 - formato Evolution API v1/v2
+        // Payload com base64 - formato Evolution API
         $payload = [
             'number' => $phone_for_api,
-            'mediaMessage' => [
-                'mediatype' => 'image',
-                'mimetype' => $mimetype,
-                'media' => 'data:' . $mimetype . ';base64,' . $base64,
-                'caption' => $caption,
-                'fileName' => 'noticia.jpg',
-            ],
+            'mediatype' => 'image',
+            'mimetype' => $mimetype,
+            'media' => 'data:' . $mimetype . ';base64,' . $base64,
+            'caption' => $caption,
+            'fileName' => 'noticia.jpg',
         ];
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -559,16 +557,14 @@ class WEC_API
         // Endpoint da Evolution API para envio de mídia
         $endpoint = $api_url . '/message/sendMedia/' . $instance;
 
-        // Payload com caption - formato Evolution API v1/v2
+        // Payload com caption - formato Evolution API
         $payload = [
             'number' => $phone_for_api,
-            'mediaMessage' => [
-                'mediatype' => 'image',
-                'mimetype' => 'image/jpeg',
-                'media' => $image_url,
-                'caption' => $caption,
-                'fileName' => 'noticia.jpg',
-            ],
+            'mediatype' => 'image',
+            'mimetype' => 'image/jpeg',
+            'media' => $image_url,
+            'caption' => $caption,
+            'fileName' => 'noticia.jpg',
         ];
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
