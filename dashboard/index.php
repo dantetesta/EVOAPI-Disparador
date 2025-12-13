@@ -61,8 +61,8 @@ $interests = get_terms([
     'hide_empty' => false,
 ]);
 
-// Nonce para AJAX
-$nonce = wp_create_nonce('wec_nonce');
+// Nonce para AJAX (deve usar a mesma action da classe WEC_Security)
+$nonce = wp_create_nonce('wec_ajax_nonce');
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
