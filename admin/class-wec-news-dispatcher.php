@@ -26,14 +26,11 @@ class WEC_News_Dispatcher
 
     private function __construct()
     {
-        // Adicionar coluna de ação na listagem de posts
-        add_filter('post_row_actions', [$this, 'add_whatsapp_action'], 10, 2);
-        
-        // Adicionar modal no footer do admin
-        add_action('admin_footer', [$this, 'render_news_dispatch_modal']);
-        
-        // Enfileirar scripts na página de posts
-        add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
+        // Funcionalidade removida - disparo agora é feito pelo painel WP PostZap
+        // Os hooks abaixo foram desativados:
+        // add_filter('post_row_actions', [$this, 'add_whatsapp_action'], 10, 2);
+        // add_action('admin_footer', [$this, 'render_news_dispatch_modal']);
+        // add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
     }
 
     /**
