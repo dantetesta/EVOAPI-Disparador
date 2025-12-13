@@ -151,10 +151,6 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                 <h1 class="page-title">Monitor de Disparos</h1>
             </div>
             <div class="header-right">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchPosts" placeholder="Buscar notícias...">
-                </div>
                 <a href="<?php echo wp_logout_url(home_url()); ?>" class="btn-logout" title="Sair">
                     <i class="fas fa-sign-out-alt"></i>
                 </a>
@@ -295,6 +291,10 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                 <div class="section-header">
                     <h2>Notícias Recentes</h2>
                     <div class="section-actions">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchPosts" placeholder="Buscar notícias...">
+                        </div>
                         <select id="filterCategory" class="filter-select">
                             <option value="">Todas as categorias</option>
                             <?php
