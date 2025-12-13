@@ -27,7 +27,17 @@
             this.bindEvents();
             this.loadTodayStats();
             this.startMonitorPolling();
+            this.checkUrlTab();
             console.log('[WEC Dashboard] Eventos bindados');
+        },
+
+        // Verifica parâmetro tab na URL para navegar à aba correta
+        checkUrlTab: function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            if (tab) {
+                this.navigateTo(tab);
+            }
         },
 
         // Bind Events

@@ -370,10 +370,10 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                     </div>
                     <div class="pagination">
                         <?php if ($current_page > 1): ?>
-                            <a href="?paged=1" class="page-btn" title="Primeira">
+                            <a href="?page=wec-dashboard&tab=posts&paged=1" class="page-btn" title="Primeira">
                                 <i class="fas fa-angle-double-left"></i>
                             </a>
-                            <a href="?paged=<?php echo $current_page - 1; ?>" class="page-btn" title="Anterior">
+                            <a href="?page=wec-dashboard&tab=posts&paged=<?php echo $current_page - 1; ?>" class="page-btn" title="Anterior">
                                 <i class="fas fa-angle-left"></i>
                             </a>
                         <?php endif; ?>
@@ -384,16 +384,16 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                         
                         for ($i = $start_page; $i <= $end_page; $i++):
                         ?>
-                            <a href="?paged=<?php echo $i; ?>" class="page-btn <?php echo $i === $current_page ? 'active' : ''; ?>">
+                            <a href="?page=wec-dashboard&tab=posts&paged=<?php echo $i; ?>" class="page-btn <?php echo $i === $current_page ? 'active' : ''; ?>">
                                 <?php echo $i; ?>
                             </a>
                         <?php endfor; ?>
                         
                         <?php if ($current_page < $total_pages): ?>
-                            <a href="?paged=<?php echo $current_page + 1; ?>" class="page-btn" title="Próxima">
+                            <a href="?page=wec-dashboard&tab=posts&paged=<?php echo $current_page + 1; ?>" class="page-btn" title="Próxima">
                                 <i class="fas fa-angle-right"></i>
                             </a>
-                            <a href="?paged=<?php echo $total_pages; ?>" class="page-btn" title="Última">
+                            <a href="?page=wec-dashboard&tab=posts&paged=<?php echo $total_pages; ?>" class="page-btn" title="Última">
                                 <i class="fas fa-angle-double-right"></i>
                             </a>
                         <?php endif; ?>
