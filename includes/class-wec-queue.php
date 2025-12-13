@@ -51,51 +51,67 @@ class WEC_Queue
         global $wpdb;
         $charset_collate = $wpdb->get_charset_collate();
 
-        // Tabela de batches (campanhas de disparo)
         $batch_table = $wpdb->prefix . self::BATCH_TABLE;
-        $sql_batch = "CREATE TABLE IF NOT EXISTS $batch_table (
-            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-            post_id bigint(20) unsigned NOT NULL,
-            post_title varchar(255) NOT NULL,
-            post_excerpt text,
-            post_url varchar(500) NOT NULL,
-            post_image varchar(500),
-            total_leads int(11) NOT NULL DEFAULT 0,
-            sent_count int(11) NOT NULL DEFAULT 0,
-            failed_count int(11) NOT NULL DEFAULT 0,
-            status enum('pending','processing','paused','completed','cancelled') NOT NULL DEFAULT 'pending',
-            delay_min int(11) NOT NULL DEFAULT 4,
-            delay_max int(11) NOT NULL DEFAULT 20,
-            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            started_at datetime,
-            completed_at datetime,
-            PRIMARY KEY (id),
-            KEY post_id (post_id),
-            KEY status (status)
-        ) $charset_collate;";
-
-        // Tabela de itens da fila
         $queue_table = $wpdb->prefix . self::TABLE_NAME;
-        $sql_queue = "CREATE TABLE IF NOT EXISTS $queue_table (
-            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-            batch_id bigint(20) unsigned NOT NULL,
-            lead_id bigint(20) unsigned NOT NULL,
-            lead_name varchar(255) NOT NULL,
-            lead_phone varchar(50) NOT NULL,
-            status enum('pending','processing','sent','failed') NOT NULL DEFAULT 'pending',
-            error_message text,
-            scheduled_at datetime,
-            sent_at datetime,
-            PRIMARY KEY (id),
-            KEY batch_id (batch_id),
-            KEY lead_id (lead_id),
-            KEY status (status),
-            KEY scheduled_at (scheduled_at)
-        ) $charset_collate;";
 
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql_batch);
-        dbDelta($sql_queue);
+        // Verificar se tabela batch existe
+        $batch_exists = $wpdb->get_var("SHOW TABLES LIKE '$batch_table'") === $batch_table;
+        
+        if (!$batch_exists) {
+            $sql_batch = "CREATE TABLE $batch_table (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                post_id bigint(20) unsigned NOT NULL,
+                post_title varchar(255) NOT NULL,
+                post_excerpt text,
+                post_url varchar(500) NOT NULL,
+                post_image varchar(500),
+                total_leads int(11) NOT NULL DEFAULT 0,
+                sent_count int(11) NOT NULL DEFAULT 0,
+                failed_count int(11) NOT NULL DEFAULT 0,
+                status varchar(20) NOT NULL DEFAULT 'pending',
+                delay_min int(11) NOT NULL DEFAULT 4,
+                delay_max int(11) NOT NULL DEFAULT 20,
+                created_at datetime NOT NULL,
+                started_at datetime DEFAULT NULL,
+                completed_at datetime DEFAULT NULL,
+                PRIMARY KEY (id),
+                KEY post_id (post_id),
+                KEY status (status)
+            ) $charset_collate;";
+            
+            $wpdb->query($sql_batch);
+            
+            if ($wpdb->last_error) {
+                error_log('[WEC] Erro ao criar tabela batch: ' . $wpdb->last_error);
+            }
+        }
+
+        // Verificar se tabela queue existe
+        $queue_exists = $wpdb->get_var("SHOW TABLES LIKE '$queue_table'") === $queue_table;
+        
+        if (!$queue_exists) {
+            $sql_queue = "CREATE TABLE $queue_table (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                batch_id bigint(20) unsigned NOT NULL,
+                lead_id bigint(20) unsigned NOT NULL,
+                lead_name varchar(255) NOT NULL,
+                lead_phone varchar(50) NOT NULL,
+                status varchar(20) NOT NULL DEFAULT 'pending',
+                error_message text,
+                scheduled_at datetime DEFAULT NULL,
+                sent_at datetime DEFAULT NULL,
+                PRIMARY KEY (id),
+                KEY batch_id (batch_id),
+                KEY lead_id (lead_id),
+                KEY status (status)
+            ) $charset_collate;";
+            
+            $wpdb->query($sql_queue);
+            
+            if ($wpdb->last_error) {
+                error_log('[WEC] Erro ao criar tabela queue: ' . $wpdb->last_error);
+            }
+        }
     }
 
     /**
