@@ -60,26 +60,26 @@ class WEC_API
      */
     public static function test_connection(): array
     {
-        // Verificar se pode testar (precisa da Global Key)
-        if (!WEC_Settings::can_test_connection()) {
+        $api_url = WEC_Settings::get_api_url();
+        $instance = WEC_Settings::get_instance_name();
+        $token = WEC_Settings::get_token();
+
+        // Verificar configurações mínimas
+        if (empty($api_url) || empty($instance) || empty($token)) {
             return [
                 'success' => false,
-                'error' => __('Configurações incompletas. Preencha URL, Instance Name e Global API Key.', 'whatsapp-evolution-clients')
+                'error' => __('Configurações incompletas. Preencha URL, Nome da Instância e Token.', 'whatsapp-evolution-clients')
             ];
         }
 
-        $api_url = WEC_Settings::get_api_url();
-        $instance = WEC_Settings::get_instance_name();
-        $global_key = WEC_Settings::get_global_key();
-
-        // Endpoint para verificar status da instância (usa Global Key)
+        // Endpoint para verificar status da instância (usa Token da Instância)
         $endpoint = $api_url . '/instance/connectionState/' . $instance;
 
         $response = wp_remote_get($endpoint, [
             'timeout' => self::DEFAULT_TIMEOUT,
             'headers' => [
                 'Content-Type' => 'application/json',
-                'apikey' => $global_key,
+                'apikey' => $token,
             ],
             'sslverify' => false,
         ]);
