@@ -1013,26 +1013,36 @@ class WEC_Queue
 
         $batches_data = [];
         foreach ($active_batches as $batch) {
-            $sent = $wpdb->get_var($wpdb->prepare(
+            $sent = intval($wpdb->get_var($wpdb->prepare(
                 "SELECT COUNT(*) FROM $queue_table WHERE batch_id = %d AND status = 'sent'",
                 $batch->id
-            ));
-            $failed = $wpdb->get_var($wpdb->prepare(
+            )));
+            $failed = intval($wpdb->get_var($wpdb->prepare(
                 "SELECT COUNT(*) FROM $queue_table WHERE batch_id = %d AND status = 'failed'",
                 $batch->id
-            ));
-            $batch_pending = $wpdb->get_var($wpdb->prepare(
+            )));
+            $batch_pending = intval($wpdb->get_var($wpdb->prepare(
                 "SELECT COUNT(*) FROM $queue_table WHERE batch_id = %d AND status = 'pending'",
                 $batch->id
-            ));
+            )));
+            
+            // Se não há mais pendentes e status ainda é processing, marcar como completed
+            if ($batch_pending === 0 && $batch->status === 'processing') {
+                $wpdb->update($batch_table, ['status' => 'completed'], ['id' => $batch->id]);
+                continue; // Não mostrar como ativo
+            }
+            
+            // Calcular total real baseado nos itens na fila
+            $total_real = $sent + $failed + $batch_pending;
+            if ($total_real === 0) $total_real = max(1, $batch->total_leads);
 
             $batches_data[] = [
                 'id' => $batch->id,
                 'post_title' => $batch->post_title,
-                'total' => $batch->total_leads,
-                'sent' => intval($sent),
-                'failed' => intval($failed),
-                'pending' => intval($batch_pending),
+                'total' => $total_real,
+                'sent' => $sent,
+                'failed' => $failed,
+                'pending' => $batch_pending,
                 'status' => $batch->status,
                 'created_at' => $batch->created_at,
             ];
