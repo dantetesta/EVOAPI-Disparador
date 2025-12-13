@@ -1314,6 +1314,261 @@ body {
 }
 
 /* ============================================
+   PÁGINA DO MONITOR
+   ============================================ */
+.stat-icon.bg-red {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.stat-icon.bg-orange {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+}
+
+.monitor-section {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+}
+
+.monitor-section .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border);
+}
+
+.monitor-section .section-header h2 {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.monitor-section .section-header h2 i {
+    color: var(--primary);
+}
+
+.live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.badge-live {
+    background: #ef4444 !important;
+    animation: pulse 1s infinite;
+}
+
+/* Disparos Ativos */
+.active-dispatches {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.dispatch-card {
+    background: var(--bg-main);
+    border-radius: var(--radius-sm);
+    padding: 15px;
+    border-left: 4px solid var(--primary);
+}
+
+.dispatch-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.dispatch-header h4 {
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dispatch-header h4 i {
+    color: var(--primary);
+}
+
+.dispatch-status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.dispatch-status.status-processing {
+    background: rgba(245, 158, 11, 0.15);
+    color: #d97706;
+}
+
+.dispatch-status.status-pending {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+}
+
+.dispatch-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.progress-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    min-width: 40px;
+}
+
+.dispatch-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.dispatch-stats .stat {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.dispatch-stats .stat.success { color: var(--primary); }
+.dispatch-stats .stat.error { color: #ef4444; }
+.dispatch-stats .stat.pending { color: #6b7280; }
+
+.no-active-dispatch {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+
+.no-active-dispatch i {
+    font-size: 40px;
+    color: var(--text-light);
+    margin-bottom: 15px;
+}
+
+.no-active-dispatch p {
+    margin-bottom: 15px;
+}
+
+.btn-new-dispatch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--primary);
+    color: white;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.btn-new-dispatch:hover {
+    background: var(--primary-dark);
+}
+
+/* Log em Tempo Real */
+.btn-clear-log {
+    padding: 6px 12px;
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: var(--transition);
+}
+
+.btn-clear-log:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.realtime-log {
+    max-height: 300px;
+    overflow-y: auto;
+    background: #1a1a2e;
+    border-radius: var(--radius-sm);
+    padding: 15px;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 12px;
+}
+
+.realtime-log .log-entry {
+    display: flex;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: #a0aec0;
+}
+
+.realtime-log .log-entry:last-child {
+    border-bottom: none;
+}
+
+.realtime-log .log-time {
+    color: #718096;
+    min-width: 70px;
+}
+
+.realtime-log .log-entry.success .log-message {
+    color: var(--primary);
+}
+
+.realtime-log .log-entry.error .log-message {
+    color: #ef4444;
+}
+
+.realtime-log .log-entry.info .log-message {
+    color: #60a5fa;
+}
+
+/* ============================================
    PÁGINA DE CONTATOS (LEADS)
    ============================================ */
 

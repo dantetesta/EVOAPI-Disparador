@@ -38,6 +38,9 @@ if (!current_user_can('manage_options')) {
     wp_die('Você não tem permissão para acessar esta página.', 'Acesso Negado', ['response' => 403]);
 }
 
+// Garantir que tabelas existem
+WEC_Queue::create_tables();
+
 // Dados do usuário atual
 $current_user = wp_get_current_user();
 
@@ -87,7 +90,12 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
         </div>
         
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" data-page="posts">
+            <a href="#" class="nav-item active" data-page="monitor">
+                <i class="fas fa-desktop"></i>
+                <span>Monitor</span>
+                <span class="badge badge-live" id="activeBatchesBadge" style="display:none;">●</span>
+            </a>
+            <a href="#" class="nav-item" data-page="posts">
                 <i class="fas fa-newspaper"></i>
                 <span>Notícias</span>
             </a>
@@ -128,7 +136,7 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="page-title">Notícias para Disparo</h1>
+                <h1 class="page-title">Monitor de Disparos</h1>
             </div>
             <div class="header-right">
                 <div class="search-box">
@@ -144,8 +152,91 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
         <!-- Content Area -->
         <div class="content-area">
             
+            <!-- PAGE: MONITOR -->
+            <div class="page-content active" data-page="monitor">
+                
+                <!-- Stats Resumo -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="monitorSentToday">0</span>
+                            <span class="stat-label">Enviados Hoje</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-orange">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="monitorProcessing">0</span>
+                            <span class="stat-label">Em Andamento</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-red">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="monitorFailed">0</span>
+                            <span class="stat-label">Falhas Hoje</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-blue">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="monitorPending">0</span>
+                            <span class="stat-label">Pendentes</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Disparos Ativos -->
+                <div class="monitor-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-broadcast-tower"></i> Disparos em Andamento</h2>
+                        <span class="live-indicator" id="liveIndicator">
+                            <span class="live-dot"></span> Atualização automática
+                        </span>
+                    </div>
+                    
+                    <div class="active-dispatches" id="activeDispatches">
+                        <!-- Carregado via JavaScript -->
+                        <div class="no-active-dispatch">
+                            <i class="fas fa-inbox"></i>
+                            <p>Nenhum disparo em andamento</p>
+                            <a href="#" class="btn-new-dispatch" onclick="Dashboard.navigateTo('posts'); return false;">
+                                <i class="fas fa-plus"></i> Iniciar Novo Disparo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Log em Tempo Real -->
+                <div class="monitor-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-terminal"></i> Log em Tempo Real</h2>
+                        <button class="btn-clear-log" id="btnClearLog">
+                            <i class="fas fa-trash"></i> Limpar
+                        </button>
+                    </div>
+                    
+                    <div class="realtime-log" id="realtimeLog">
+                        <div class="log-entry info">
+                            <span class="log-time"><?php echo date('H:i:s'); ?></span>
+                            <span class="log-message">Monitor iniciado. Aguardando disparos...</span>
+                        </div>
+                    </div>
+                </div>
+                
+            </div><!-- END PAGE: MONITOR -->
+            
             <!-- PAGE: POSTS -->
-            <div class="page-content active" data-page="posts">
+            <div class="page-content" data-page="posts">
             
             <!-- Stats Cards -->
             <div class="stats-grid">

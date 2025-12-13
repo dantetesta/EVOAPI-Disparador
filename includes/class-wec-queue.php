@@ -40,6 +40,7 @@ class WEC_Queue
         add_action('wp_ajax_wec_get_post_data', [$this, 'ajax_get_post_data']);
         add_action('wp_ajax_wec_get_today_stats', [$this, 'ajax_get_today_stats']);
         add_action('wp_ajax_wec_cancel_dispatch', [$this, 'ajax_cancel_dispatch']);
+        add_action('wp_ajax_wec_get_monitor_data', [$this, 'ajax_get_monitor_data']);
     }
 
     /**
@@ -923,5 +924,108 @@ class WEC_Queue
         $this->update_batch_status($batch_id, 'cancelled');
 
         wp_send_json_success(['message' => 'Disparo cancelado']);
+    }
+
+    /**
+     * AJAX: Busca dados do monitor em tempo real
+     */
+    public function ajax_get_monitor_data(): void
+    {
+        if (!WEC_Security::verify_nonce($_POST['nonce'] ?? '')) {
+            wp_send_json_error(['message' => 'Nonce inválido']);
+        }
+
+        global $wpdb;
+        $batch_table = $wpdb->prefix . self::BATCH_TABLE;
+        $queue_table = $wpdb->prefix . self::TABLE_NAME;
+        $today = date('Y-m-d');
+
+        // Enviados hoje
+        $sent_today = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $queue_table WHERE status = 'sent' AND DATE(sent_at) = %s",
+            $today
+        ));
+
+        // Falhas hoje
+        $failed_today = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $queue_table q 
+             JOIN $batch_table b ON q.batch_id = b.id 
+             WHERE q.status = 'failed' AND DATE(b.created_at) = %s",
+            $today
+        ));
+
+        // Em processamento
+        $processing = $wpdb->get_var(
+            "SELECT COUNT(*) FROM $queue_table WHERE status = 'processing'"
+        );
+
+        // Pendentes (em batches ativos)
+        $pending = $wpdb->get_var(
+            "SELECT COUNT(*) FROM $queue_table q 
+             JOIN $batch_table b ON q.batch_id = b.id 
+             WHERE q.status = 'pending' AND b.status IN ('processing', 'pending')"
+        );
+
+        // Batches ativos
+        $active_batches = $wpdb->get_results(
+            "SELECT * FROM $batch_table WHERE status IN ('processing', 'pending') ORDER BY created_at DESC LIMIT 10"
+        );
+
+        $batches_data = [];
+        foreach ($active_batches as $batch) {
+            $sent = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $queue_table WHERE batch_id = %d AND status = 'sent'",
+                $batch->id
+            ));
+            $failed = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $queue_table WHERE batch_id = %d AND status = 'failed'",
+                $batch->id
+            ));
+            $batch_pending = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $queue_table WHERE batch_id = %d AND status = 'pending'",
+                $batch->id
+            ));
+
+            $batches_data[] = [
+                'id' => $batch->id,
+                'post_title' => $batch->post_title,
+                'total' => $batch->total_leads,
+                'sent' => intval($sent),
+                'failed' => intval($failed),
+                'pending' => intval($batch_pending),
+                'status' => $batch->status,
+                'created_at' => $batch->created_at,
+            ];
+        }
+
+        // Logs recentes (últimos 20)
+        $recent_logs = $wpdb->get_results($wpdb->prepare(
+            "SELECT q.id, q.lead_name, q.status, q.sent_at, b.post_title 
+             FROM $queue_table q 
+             JOIN $batch_table b ON q.batch_id = b.id 
+             WHERE q.status IN ('sent', 'failed') AND q.sent_at IS NOT NULL
+             ORDER BY q.sent_at DESC LIMIT %d",
+            20
+        ));
+
+        $logs_data = [];
+        foreach ($recent_logs as $log) {
+            $logs_data[] = [
+                'id' => $log->id,
+                'lead_name' => $log->lead_name,
+                'status' => $log->status,
+                'post_title' => $log->post_title,
+                'time' => date('H:i:s', strtotime($log->sent_at)),
+            ];
+        }
+
+        wp_send_json_success([
+            'sent_today' => intval($sent_today),
+            'failed_today' => intval($failed_today),
+            'processing' => intval($processing),
+            'pending' => intval($pending),
+            'active_batches' => $batches_data,
+            'recent_logs' => $logs_data,
+        ]);
     }
 }

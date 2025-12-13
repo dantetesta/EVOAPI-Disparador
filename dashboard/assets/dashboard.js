@@ -26,6 +26,7 @@
             console.log('[WEC Dashboard] Init chamado');
             this.bindEvents();
             this.loadTodayStats();
+            this.startMonitorPolling();
             console.log('[WEC Dashboard] Eventos bindados');
         },
 
@@ -60,6 +61,16 @@
             // Busca de leads
             document.getElementById('searchLeads')?.addEventListener('input', function(e) {
                 self.filterLeadsByName(e.target.value);
+            });
+
+            // Limpar log do monitor
+            document.getElementById('btnClearLog')?.addEventListener('click', function() {
+                document.getElementById('realtimeLog').innerHTML = `
+                    <div class="log-entry info">
+                        <span class="log-time">${new Date().toLocaleTimeString()}</span>
+                        <span class="log-message">Log limpo. Aguardando disparos...</span>
+                    </div>
+                `;
             });
 
             // Search posts
@@ -179,6 +190,7 @@
             
             // Atualizar título
             const titles = {
+                'monitor': 'Monitor de Disparos',
                 'posts': 'Notícias para Disparo',
                 'leads': 'Contatos',
                 'history': 'Histórico de Disparos',
@@ -745,8 +757,139 @@
                     document.getElementById('totalDispatched').textContent = data.data.total || 0;
                 }
             });
+        },
+
+        // Iniciar polling do monitor
+        startMonitorPolling: function() {
+            const self = this;
+            // Atualizar imediatamente
+            this.updateMonitor();
+            // Polling a cada 3 segundos
+            this.monitorInterval = setInterval(() => {
+                self.updateMonitor();
+            }, 3000);
+        },
+
+        // Atualizar monitor em tempo real
+        updateMonitor: function() {
+            const self = this;
+            
+            fetch(WEC_DASHBOARD.ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'wec_get_monitor_data',
+                    nonce: WEC_DASHBOARD.nonce
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    self.renderMonitorData(data.data);
+                }
+            })
+            .catch(err => {
+                console.error('[WEC Monitor] Erro:', err);
+            });
+        },
+
+        // Renderizar dados do monitor
+        renderMonitorData: function(data) {
+            // Atualizar contadores
+            document.getElementById('monitorSentToday').textContent = data.sent_today || 0;
+            document.getElementById('monitorProcessing').textContent = data.processing || 0;
+            document.getElementById('monitorFailed').textContent = data.failed_today || 0;
+            document.getElementById('monitorPending').textContent = data.pending || 0;
+
+            // Badge de disparo ativo
+            const badge = document.getElementById('activeBatchesBadge');
+            if (data.active_batches && data.active_batches.length > 0) {
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+
+            // Renderizar disparos ativos
+            const container = document.getElementById('activeDispatches');
+            if (data.active_batches && data.active_batches.length > 0) {
+                let html = '';
+                data.active_batches.forEach(batch => {
+                    const progress = batch.total > 0 ? Math.round(((batch.sent + batch.failed) / batch.total) * 100) : 0;
+                    html += `
+                        <div class="dispatch-card" data-batch-id="${batch.id}">
+                            <div class="dispatch-header">
+                                <h4><i class="fab fa-whatsapp"></i> ${batch.post_title}</h4>
+                                <span class="dispatch-status status-${batch.status}">${this.getStatusLabel(batch.status)}</span>
+                            </div>
+                            <div class="dispatch-progress">
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill" style="width: ${progress}%"></div>
+                                </div>
+                                <span class="progress-text">${progress}%</span>
+                            </div>
+                            <div class="dispatch-stats">
+                                <span class="stat"><i class="fas fa-users"></i> ${batch.total} total</span>
+                                <span class="stat success"><i class="fas fa-check"></i> ${batch.sent} enviados</span>
+                                <span class="stat error"><i class="fas fa-times"></i> ${batch.failed} falhas</span>
+                                <span class="stat pending"><i class="fas fa-clock"></i> ${batch.pending} pendentes</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = `
+                    <div class="no-active-dispatch">
+                        <i class="fas fa-inbox"></i>
+                        <p>Nenhum disparo em andamento</p>
+                        <a href="#" class="btn-new-dispatch" onclick="Dashboard.navigateTo('posts'); return false;">
+                            <i class="fas fa-plus"></i> Iniciar Novo Disparo
+                        </a>
+                    </div>
+                `;
+            }
+
+            // Adicionar logs recentes
+            if (data.recent_logs && data.recent_logs.length > 0) {
+                const logContainer = document.getElementById('realtimeLog');
+                data.recent_logs.forEach(log => {
+                    if (!this.loggedIds) this.loggedIds = new Set();
+                    if (!this.loggedIds.has(log.id)) {
+                        this.loggedIds.add(log.id);
+                        const type = log.status === 'sent' ? 'success' : 'error';
+                        const icon = log.status === 'sent' ? '✓' : '✗';
+                        const entry = document.createElement('div');
+                        entry.className = `log-entry ${type}`;
+                        entry.innerHTML = `
+                            <span class="log-time">${log.time}</span>
+                            <span class="log-message">${icon} ${log.lead_name} - ${log.post_title}</span>
+                        `;
+                        logContainer.insertBefore(entry, logContainer.firstChild);
+                        
+                        // Limitar a 100 entradas
+                        while (logContainer.children.length > 100) {
+                            logContainer.removeChild(logContainer.lastChild);
+                        }
+                    }
+                });
+            }
+        },
+
+        // Label de status
+        getStatusLabel: function(status) {
+            const labels = {
+                'pending': 'Pendente',
+                'processing': 'Processando',
+                'paused': 'Pausado',
+                'completed': 'Concluído',
+                'cancelled': 'Cancelado'
+            };
+            return labels[status] || status;
         }
     };
+
+    // Expor globalmente para onclick
+    window.Dashboard = Dashboard;
 
     // Init on DOM ready
     document.addEventListener('DOMContentLoaded', () => Dashboard.init());
