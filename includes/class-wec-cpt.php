@@ -87,7 +87,7 @@ class WEC_CPT
         $labels = [
             'name' => __('Leads', 'whatsapp-evolution-clients'),
             'singular_name' => __('Lead', 'whatsapp-evolution-clients'),
-            'menu_name' => __('Zap Leads', 'whatsapp-evolution-clients'),
+            'menu_name' => __('WP PostZap', 'whatsapp-evolution-clients'),
             'name_admin_bar' => __('Lead', 'whatsapp-evolution-clients'),
             'add_new' => __('Adicionar Novo', 'whatsapp-evolution-clients'),
             'add_new_item' => __('Adicionar Novo Lead', 'whatsapp-evolution-clients'),

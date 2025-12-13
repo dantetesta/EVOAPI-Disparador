@@ -61,7 +61,7 @@ class WEC_Admin
 
         $wp_admin_bar->add_node([
             'id' => 'wec-dashboard',
-            'title' => '<span class="ab-icon dashicons dashicons-whatsapp" style="margin-right:5px;"></span> WhatsApp Dispatcher',
+            'title' => '<span class="ab-icon dashicons dashicons-whatsapp" style="margin-right:5px;"></span> WP PostZap',
             'href' => WEC_PLUGIN_URL . 'dashboard/',
             'meta' => [
                 'target' => '_blank',
