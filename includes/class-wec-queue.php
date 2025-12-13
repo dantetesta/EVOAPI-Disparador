@@ -142,31 +142,22 @@ class WEC_Queue
         // Interesses podem vir como JSON string ou array
         $interests_raw = $_POST['interests'] ?? [];
         
-        // Debug log
-        error_log('[WEC DEBUG] interests_raw type: ' . gettype($interests_raw));
-        error_log('[WEC DEBUG] interests_raw value: ' . print_r($interests_raw, true));
-        
         if (is_string($interests_raw)) {
             $interests = json_decode(stripslashes($interests_raw), true) ?: [];
         } else {
-            $interests = array_map('sanitize_text_field', (array)$interests_raw);
+            $interests = (array)$interests_raw;
         }
         
         // Sanitizar cada interesse
         $interests = array_filter(array_map('sanitize_text_field', $interests));
         
-        error_log('[WEC DEBUG] interests final: ' . print_r($interests, true));
-        
         $send_all = isset($_POST['send_all']) && $_POST['send_all'] === 'true';
 
         $leads = $this->get_leads_by_interests($interests, $send_all);
-        
-        error_log('[WEC DEBUG] leads count: ' . count($leads));
 
         wp_send_json_success([
             'leads' => $leads,
             'total' => count($leads),
-            'debug_interests' => $interests,
         ]);
     }
 
@@ -1037,7 +1028,7 @@ class WEC_Queue
 
         global $wpdb;
         $table = $wpdb->prefix . self::TABLE_NAME;
-        $today = date('Y-m-d');
+        $today = current_time('Y-m-d');
 
         $total = $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM $table WHERE status = 'sent' AND DATE(sent_at) = %s",
@@ -1081,7 +1072,7 @@ class WEC_Queue
         global $wpdb;
         $batch_table = $wpdb->prefix . self::BATCH_TABLE;
         $queue_table = $wpdb->prefix . self::TABLE_NAME;
-        $today = date('Y-m-d');
+        $today = current_time('Y-m-d');
 
         // Enviados hoje
         $sent_today = $wpdb->get_var($wpdb->prepare(

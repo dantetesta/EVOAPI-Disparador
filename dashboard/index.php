@@ -46,7 +46,7 @@ $current_user = wp_get_current_user();
 
 // Paginação de posts
 $posts_per_page = 12;
-$current_page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+$current_page = isset($_GET['paged']) ? max(1, absint($_GET['paged'])) : 1;
 
 $posts_args = [
     'post_type' => 'post',
@@ -114,7 +114,7 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
             <a href="#" class="nav-item" data-page="leads">
                 <i class="fas fa-users"></i>
                 <span>Contatos</span>
-                <span class="badge"><?php echo $total_leads; ?></span>
+                <span class="badge"><?php echo absint($total_leads); ?></span>
             </a>
             <a href="#" class="nav-item" data-page="history">
                 <i class="fas fa-history"></i>
@@ -257,7 +257,7 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                         <i class="fas fa-newspaper"></i>
                     </div>
                     <div class="stat-info">
-                        <span class="stat-value"><?php echo $posts_query->found_posts; ?></span>
+                        <span class="stat-value"><?php echo absint($posts_query->found_posts); ?></span>
                         <span class="stat-label">Notícias</span>
                     </div>
                 </div>
@@ -266,7 +266,7 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-info">
-                        <span class="stat-value"><?php echo $total_leads; ?></span>
+                        <span class="stat-value"><?php echo absint($total_leads); ?></span>
                         <span class="stat-label">Contatos</span>
                     </div>
                 </div>
@@ -568,22 +568,22 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                                 'cancelled' => 'Cancelado',
                             ][$batch->status] ?? $batch->status;
                     ?>
-                        <div class="history-item status-<?php echo $status_class; ?>">
+                        <div class="history-item status-<?php echo esc_attr($status_class); ?>">
                             <div class="history-icon">
                                 <i class="fas fa-paper-plane"></i>
                             </div>
                             <div class="history-info">
                                 <h4><?php echo esc_html($batch->post_title); ?></h4>
                                 <p>
-                                    <span class="history-stat"><i class="fas fa-users"></i> <?php echo $batch->total_leads; ?> destinatários</span>
-                                    <span class="history-stat"><i class="fas fa-check"></i> <?php echo $batch->sent_count; ?> enviados</span>
-                                    <span class="history-stat"><i class="fas fa-times"></i> <?php echo $batch->failed_count; ?> falhas</span>
+                                    <span class="history-stat"><i class="fas fa-users"></i> <?php echo absint($batch->total_leads); ?> destinatários</span>
+                                    <span class="history-stat"><i class="fas fa-check"></i> <?php echo absint($batch->sent_count); ?> enviados</span>
+                                    <span class="history-stat"><i class="fas fa-times"></i> <?php echo absint($batch->failed_count); ?> falhas</span>
                                 </p>
                             </div>
                             <div class="history-meta">
-                                <span class="history-status status-<?php echo $status_class; ?>"><?php echo $status_label; ?></span>
-                                <span class="history-date"><?php echo date('d/m/Y H:i', strtotime($batch->created_at)); ?></span>
-                                <button class="btn-delete-history" onclick="Dashboard.deleteBatch(<?php echo $batch->id; ?>)" title="Excluir">
+                                <span class="history-status status-<?php echo esc_attr($status_class); ?>"><?php echo esc_html($status_label); ?></span>
+                                <span class="history-date"><?php echo esc_html(date_i18n('d/m/Y H:i', strtotime($batch->created_at))); ?></span>
+                                <button class="btn-delete-history" onclick="Dashboard.deleteBatch(<?php echo absint($batch->id); ?>)" title="Excluir">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
