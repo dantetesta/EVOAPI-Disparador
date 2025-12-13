@@ -370,8 +370,8 @@ class WEC_Settings
                         </svg>
                     </div>
                     <div class="wec-header-text">
-                        <h1><?php esc_html_e('Evolution WhatsApp', 'whatsapp-evolution-clients'); ?></h1>
-                        <p><?php esc_html_e('Configure sua integração com a Evolution API', 'whatsapp-evolution-clients'); ?></p>
+                        <h1><?php esc_html_e('WP PostZap', 'whatsapp-evolution-clients'); ?></h1>
+                        <p><?php esc_html_e('Setup da Evolution API', 'whatsapp-evolution-clients'); ?></p>
                     </div>
                 </div>
                 <div class="wec-header-badge">
