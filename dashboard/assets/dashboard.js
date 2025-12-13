@@ -154,8 +154,11 @@
                 self.toggleSendAll(this.checked);
             });
 
-            // Interest selection
+            // Interests/Categories/Contacts selection
             document.querySelectorAll('input[name="interests[]"]').forEach(input => {
+                input.addEventListener('change', () => self.updateRecipients());
+            });
+            document.querySelectorAll('input[name="categories[]"]').forEach(input => {
                 input.addEventListener('change', () => self.updateRecipients());
             });
 
@@ -510,19 +513,47 @@
                 return;
             }
 
-            // By interests
+            // By interests e categories (filtro combinado)
             const interests = [];
             document.querySelectorAll('input[name="interests[]"]:checked').forEach(input => {
                 interests.push(input.value);
             });
+            
+            const categories = [];
+            document.querySelectorAll('input[name="categories[]"]:checked').forEach(input => {
+                categories.push(input.value);
+            });
 
-            if (interests.length === 0) {
+            if (interests.length === 0 && categories.length === 0) {
                 this.selectedLeads = [];
                 this.updateRecipientsUI(0);
                 return;
             }
 
-            this.fetchLeadsByInterest(interests, false);
+            this.fetchLeadsByFilters(interests, categories, false);
+        },
+
+        fetchLeadsByFilters: function(interests, categories, sendAll) {
+            const self = this;
+            
+            fetch(WEC_DASHBOARD.ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'wec_get_leads_by_filters',
+                    nonce: WEC_DASHBOARD.nonce,
+                    interests: JSON.stringify(interests),
+                    categories: JSON.stringify(categories),
+                    send_all: sendAll ? 'true' : 'false'
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    self.selectedLeads = data.data.leads;
+                    self.updateRecipientsUI(data.data.total);
+                }
+            });
         },
 
         fetchLeadsByInterest: function(interests, sendAll) {

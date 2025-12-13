@@ -70,6 +70,12 @@ $interests = get_terms([
     'hide_empty' => false,
 ]);
 
+// Buscar categorias de clientes
+$client_categories = get_terms([
+    'taxonomy' => WEC_CPT::TAXONOMY,
+    'hide_empty' => false,
+]);
+
 // Nonce para AJAX (deve usar a mesma action da classe WEC_Security)
 $nonce = wp_create_nonce('wec_ajax_nonce');
 ?>
@@ -736,20 +742,54 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                         <button class="btn-sm" id="clearInterests">Limpar</button>
                         <span class="selection-count"><span id="interestsCount">0</span> / <?php echo count($interests); ?> selecionados</span>
                     </div>
-                    <div class="interests-list" id="interestsList">
-                        <?php foreach ($interests as $interest): 
-                            $leads_in_interest = get_posts([
-                                'post_type' => WEC_CPT::POST_TYPE,
-                                'posts_per_page' => -1,
-                                'tax_query' => [['taxonomy' => 'wec_interest', 'field' => 'term_id', 'terms' => $interest->term_id]]
-                            ]);
-                        ?>
-                            <label class="interest-item">
-                                <input type="checkbox" name="interests[]" value="<?php echo $interest->term_id; ?>">
-                                <span class="interest-name"><?php echo esc_html($interest->name); ?></span>
-                                <span class="interest-count"><?php echo count($leads_in_interest); ?> leads</span>
-                            </label>
-                        <?php endforeach; ?>
+                    <!-- Filtros em duas colunas -->
+                    <div class="filters-grid">
+                        <!-- Coluna: Interesses -->
+                        <div class="filter-column">
+                            <h5><i class="fas fa-tags"></i> Interesses</h5>
+                            <div class="filter-list" id="interestsList">
+                                <?php foreach ($interests as $interest): 
+                                    $leads_in_interest = get_posts([
+                                        'post_type' => WEC_CPT::POST_TYPE,
+                                        'posts_per_page' => -1,
+                                        'fields' => 'ids',
+                                        'tax_query' => [['taxonomy' => 'wec_interest', 'field' => 'term_id', 'terms' => $interest->term_id]]
+                                    ]);
+                                ?>
+                                    <label class="filter-item">
+                                        <input type="checkbox" name="interests[]" value="<?php echo $interest->term_id; ?>">
+                                        <span class="filter-name"><?php echo esc_html($interest->name); ?></span>
+                                        <span class="filter-count"><?php echo count($leads_in_interest); ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        
+                        <!-- Coluna: Categorias de Clientes -->
+                        <div class="filter-column">
+                            <h5><i class="fas fa-folder"></i> Categorias</h5>
+                            <div class="filter-list" id="categoriesList">
+                                <?php foreach ($client_categories as $category): 
+                                    $leads_in_category = get_posts([
+                                        'post_type' => WEC_CPT::POST_TYPE,
+                                        'posts_per_page' => -1,
+                                        'fields' => 'ids',
+                                        'tax_query' => [['taxonomy' => WEC_CPT::TAXONOMY, 'field' => 'term_id', 'terms' => $category->term_id]]
+                                    ]);
+                                ?>
+                                    <label class="filter-item">
+                                        <input type="checkbox" name="categories[]" value="<?php echo $category->term_id; ?>">
+                                        <span class="filter-name"><?php echo esc_html($category->name); ?></span>
+                                        <span class="filter-count"><?php echo count($leads_in_category); ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Selecione interesses E/OU categorias. O sistema traz leads que correspondem a TODOS os filtros selecionados.</span>
                     </div>
                 </div>
                 

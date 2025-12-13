@@ -31,6 +31,7 @@ class WEC_Queue
     {
         // AJAX handlers
         add_action('wp_ajax_wec_get_leads_by_interest', [$this, 'ajax_get_leads_by_interest']);
+        add_action('wp_ajax_wec_get_leads_by_filters', [$this, 'ajax_get_leads_by_filters']);
         add_action('wp_ajax_wec_get_all_contacts', [$this, 'ajax_get_all_contacts']);
         add_action('wp_ajax_wec_create_news_dispatch', [$this, 'ajax_create_news_dispatch']);
         add_action('wp_ajax_wec_process_queue_item', [$this, 'ajax_process_queue_item']);
@@ -165,6 +166,35 @@ class WEC_Queue
             'leads' => $leads,
             'total' => count($leads),
             'debug_interests' => $interests,
+        ]);
+    }
+
+    /**
+     * AJAX: Busca leads por filtros combinados (interesses + categorias)
+     */
+    public function ajax_get_leads_by_filters(): void
+    {
+        if (!WEC_Security::verify_nonce($_POST['nonce'] ?? '')) {
+            wp_send_json_error(['message' => 'Nonce inválido']);
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Sem permissão']);
+        }
+
+        $interests_raw = $_POST['interests'] ?? '[]';
+        $categories_raw = $_POST['categories'] ?? '[]';
+        
+        $interests = is_string($interests_raw) ? json_decode(stripslashes($interests_raw), true) ?: [] : (array)$interests_raw;
+        $categories = is_string($categories_raw) ? json_decode(stripslashes($categories_raw), true) ?: [] : (array)$categories_raw;
+        
+        $send_all = isset($_POST['send_all']) && $_POST['send_all'] === 'true';
+
+        $leads = $this->get_leads_by_combined_filters($interests, $categories, $send_all);
+
+        wp_send_json_success([
+            'leads' => $leads,
+            'total' => count($leads),
         ]);
     }
 
@@ -304,6 +334,78 @@ class WEC_Queue
                     'name' => $post->post_title,
                     'phone' => $phone,
                     'interests' => $interest_terms,
+                ];
+            }
+        }
+
+        return $leads;
+    }
+
+    /**
+     * Busca leads por filtros combinados (interesses + categorias)
+     */
+    public function get_leads_by_combined_filters(array $interests = [], array $categories = [], bool $send_all = false): array
+    {
+        $args = [
+            'post_type' => WEC_CPT::POST_TYPE,
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'meta_query' => [
+                [
+                    'key' => '_wec_whatsapp_e164',
+                    'value' => '',
+                    'compare' => '!='
+                ]
+            ]
+        ];
+
+        // Construir tax_query combinada se não for "enviar para todos"
+        if (!$send_all && (!empty($interests) || !empty($categories))) {
+            $tax_query = ['relation' => 'AND'];
+            
+            // Filtro por interesses
+            if (!empty($interests)) {
+                $first_interest = reset($interests);
+                $field = is_numeric($first_interest) ? 'term_id' : 'slug';
+                
+                $tax_query[] = [
+                    'taxonomy' => WEC_CPT::TAXONOMY_INTEREST,
+                    'field' => $field,
+                    'terms' => $interests,
+                    'operator' => 'IN'
+                ];
+            }
+            
+            // Filtro por categorias de clientes
+            if (!empty($categories)) {
+                $first_category = reset($categories);
+                $field = is_numeric($first_category) ? 'term_id' : 'slug';
+                
+                $tax_query[] = [
+                    'taxonomy' => WEC_CPT::TAXONOMY,
+                    'field' => $field,
+                    'terms' => $categories,
+                    'operator' => 'IN'
+                ];
+            }
+            
+            $args['tax_query'] = $tax_query;
+        }
+
+        $query = new WP_Query($args);
+        $leads = [];
+
+        foreach ($query->posts as $post) {
+            $phone = get_post_meta($post->ID, '_wec_whatsapp_e164', true);
+            if (!empty($phone)) {
+                $interest_terms = wp_get_post_terms($post->ID, WEC_CPT::TAXONOMY_INTEREST, ['fields' => 'names']);
+                $category_terms = wp_get_post_terms($post->ID, WEC_CPT::TAXONOMY, ['fields' => 'names']);
+                $leads[] = [
+                    'id' => $post->ID,
+                    'name' => $post->post_title,
+                    'phone' => $phone,
+                    'interests' => $interest_terms,
+                    'categories' => $category_terms,
                 ];
             }
         }

@@ -998,6 +998,92 @@ body {
     color: var(--text-secondary);
 }
 
+/* Filtros em Grid (Interesses + Categorias) */
+.filters-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.filter-column {
+    background: var(--bg-main);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+}
+
+.filter-column h5 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+}
+
+.filter-column h5 i {
+    color: var(--primary);
+}
+
+.filter-list {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.filter-item:hover {
+    background: rgba(37, 211, 102, 0.1);
+}
+
+.filter-item input[type="checkbox"] {
+    accent-color: var(--primary);
+}
+
+.filter-name {
+    flex: 1;
+    font-size: 13px;
+}
+
+.filter-count {
+    background: var(--border);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.filter-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px;
+    background: rgba(37, 211, 102, 0.08);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.filter-info i {
+    color: var(--primary);
+    margin-top: 2px;
+}
+
+@media (max-width: 480px) {
+    .filters-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .interests-list, .contacts-list {
     max-height: 200px;
     overflow-y: auto;
