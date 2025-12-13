@@ -222,7 +222,7 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                             <i class="fas fa-inbox"></i>
                             <p>Nenhum disparo em andamento</p>
                             <a href="#" class="btn-new-dispatch" onclick="Dashboard.navigateTo('posts'); return false;">
-                                <i class="fas fa-plus"></i> Iniciar Novo Disparo
+                                <i class="fas fa-rocket"></i> Iniciar Novo Disparo
                             </a>
                         </div>
                     </div>
