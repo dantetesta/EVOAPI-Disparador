@@ -674,116 +674,62 @@ body {
 }
 
 /* Preview Styles */
-.preview-centered {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.preview-whatsapp {
     padding: 20px;
 }
 
-.iphone-frame {
-    width: 280px;
-    background: #1a1a1a;
-    border-radius: 40px;
-    padding: 10px;
-    box-shadow: 0 0 0 3px #333, 0 15px 40px rgba(0,0,0,0.3);
-}
-
-.iphone-notch {
-    width: 100px;
-    height: 24px;
-    background: #1a1a1a;
-    border-radius: 0 0 18px 18px;
-    margin: 0 auto 0;
-    position: relative;
-    top: -10px;
-    z-index: 10;
-}
-
-.iphone-screen {
-    background: #e5ddd5;
-    border-radius: 30px;
-    overflow: hidden;
-    margin-top: -14px;
-}
-
-.iphone-home {
-    width: 100px;
-    height: 4px;
-    background: #444;
-    border-radius: 2px;
-    margin: 8px auto 4px;
-}
-
-.wa-header {
-    background: linear-gradient(180deg, #075E54 0%, #128C7E 100%);
-    padding: 30px 10px 10px;
+.image-toggle-wrapper {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: white;
+    gap: 12px;
+    padding: 15px;
+    background: var(--bg-light);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
 }
 
-.wa-back {
-    font-size: 16px;
-    opacity: 0.9;
-}
-
-.wa-avatar {
-    width: 36px;
-    height: 36px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-}
-
-.wa-contact {
-    flex: 1;
-}
-
-.wa-contact strong {
+.toggle-info strong {
     display: block;
     font-size: 14px;
+    color: var(--text-primary);
 }
 
-.wa-contact small {
-    font-size: 11px;
-    opacity: 0.8;
+.toggle-info small {
+    font-size: 12px;
+    color: var(--text-secondary);
 }
 
-.wa-icons {
-    display: flex;
-    gap: 15px;
-    font-size: 14px;
-    opacity: 0.9;
+.wa-conversation {
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAApgAAAKYB3X3/OAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAABQSURBVEiJ7c0xDQAwDMCwqv/P4IMOCBLoJFW2k+R9TQaZGwvAA/AAHoAH4AE8AA/gAXgAHsAD8AAegAfwAB6AB+ABPAAPoN9ssj0ANXoBD0cCEXcH8gAAAAAASUVORK5CYII=');
+    background-color: #e5ddd5;
+    border-radius: var(--radius);
+    padding: 20px;
+    min-height: 300px;
 }
 
-.wa-chat {
-    padding: 12px;
-    min-height: 250px;
-    background: linear-gradient(rgba(229,221,213,0.95), rgba(229,221,213,0.95));
-}
-
-.wa-bubble {
-    background: white;
-    border-radius: 0 10px 10px 10px;
-    padding: 6px;
-    max-width: 90%;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+.wa-bubble.sent {
+    background: #dcf8c6;
+    border-radius: 8px 0 8px 8px;
+    padding: 8px;
+    max-width: 100%;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
     position: relative;
 }
 
-.wa-bubble::before {
+.wa-bubble.sent::after {
     content: '';
     position: absolute;
     top: 0;
-    left: -8px;
-    border: 8px solid transparent;
-    border-top-color: white;
-    border-right-color: white;
+    right: -8px;
+    border-width: 0 0 10px 10px;
+    border-style: solid;
+    border-color: transparent transparent transparent #dcf8c6;
+}
+
+.wa-greeting {
+    font-size: 14px;
+    color: #303030;
+    margin-bottom: 8px;
 }
 
 .wa-img {

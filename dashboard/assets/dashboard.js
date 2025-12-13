@@ -256,20 +256,36 @@
         updateImageOption: function(post) {
             const checkbox = document.getElementById('includeImage');
             const status = document.getElementById('imageStatus');
+            const imgPreview = document.getElementById('previewImage');
             
             if (!checkbox || !status) return;
             
             if (post.image) {
                 checkbox.disabled = false;
                 checkbox.checked = true;
-                status.textContent = 'A imagem será otimizada (600px, 80% qualidade)';
+                status.textContent = 'A imagem será otimizada (600px, 80%)';
                 status.style.color = '';
+                if (imgPreview) {
+                    imgPreview.innerHTML = `<img src="${post.image}" alt="">`;
+                    imgPreview.style.display = 'block';
+                }
             } else {
                 checkbox.disabled = true;
                 checkbox.checked = false;
                 status.textContent = 'Este post não possui imagem destacada';
                 status.style.color = '#ef4444';
+                if (imgPreview) {
+                    imgPreview.innerHTML = '<i class="fas fa-image"></i>';
+                    imgPreview.style.display = 'none';
+                }
             }
+            
+            // Atualizar visibilidade ao mudar toggle
+            checkbox.onchange = function() {
+                if (imgPreview) {
+                    imgPreview.style.display = this.checked && post.image ? 'block' : 'none';
+                }
+            };
         },
 
         // Filter posts

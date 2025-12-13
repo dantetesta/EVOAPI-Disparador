@@ -668,40 +668,36 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
         <div class="offcanvas-body">
             <!-- Tab Preview -->
             <div class="offcanvas-content active" data-tab="preview">
-                <div class="preview-centered">
-                    <div class="iphone-frame">
-                        <div class="iphone-notch"></div>
-                        <div class="iphone-screen">
-                            <div class="wa-header">
-                                <span class="wa-back"><i class="fas fa-arrow-left"></i></span>
-                                <div class="wa-avatar">📰</div>
-                                <div class="wa-contact">
-                                    <strong>Sua Notícia</strong>
-                                    <small>online</small>
-                                </div>
-                                <span class="wa-icons">
-                                    <i class="fas fa-video"></i>
-                                    <i class="fas fa-phone"></i>
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </span>
+                <div class="preview-whatsapp">
+                    <!-- Toggle de imagem -->
+                    <div class="image-toggle-wrapper">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="includeImage" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <div class="toggle-info">
+                            <strong>Incluir imagem destacada</strong>
+                            <small id="imageStatus">A imagem será otimizada (600px, 80%)</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Preview estilo WhatsApp -->
+                    <div class="wa-conversation">
+                        <div class="wa-bubble sent">
+                            <div class="wa-img" id="previewImage">
+                                <i class="fas fa-image"></i>
                             </div>
-                            <div class="wa-chat">
-                                <div class="wa-bubble">
-                                    <div class="wa-img" id="previewImage">
-                                        <i class="fas fa-image"></i>
-                                    </div>
-                                    <div class="wa-title" id="previewTitle">Título da Notícia</div>
-                                    <div class="wa-text" id="previewExcerpt">Resumo da notícia...</div>
-                                    <div class="wa-link">🔗 <span id="previewUrl">link-da-noticia.com</span></div>
-                                    <div class="wa-meta">
-                                        <span class="wa-time">Agora</span>
-                                        <span class="wa-check">✓✓</span>
-                                    </div>
-                                </div>
+                            <div class="wa-greeting" id="previewGreeting">Olá! Boa tarde 👋</div>
+                            <div class="wa-title" id="previewTitle">📰 *Título da Notícia*</div>
+                            <div class="wa-text" id="previewExcerpt">Resumo da notícia aparece aqui...</div>
+                            <div class="wa-link">🔗 <span id="previewUrl">Leia mais: link-da-noticia.com</span></div>
+                            <div class="wa-meta">
+                                <span class="wa-time">Agora</span>
+                                <span class="wa-check">✓✓</span>
                             </div>
                         </div>
-                        <div class="iphone-home"></div>
                     </div>
+                    
                     <a href="#" target="_blank" class="preview-link" id="previewLink">
                         <i class="fas fa-external-link-alt"></i>
                         Ver notícia original
@@ -826,22 +822,6 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
             
             <!-- Tab Settings -->
             <div class="offcanvas-content" data-tab="settings">
-                <!-- Opção de Imagem -->
-                <div class="settings-section">
-                    <h4><i class="fas fa-image"></i> Imagem da Notícia</h4>
-                    <p class="settings-desc">Escolha se deseja enviar a imagem destacada junto com a mensagem.</p>
-                    <div class="image-option">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="includeImage" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <div class="toggle-label">
-                            <strong>Incluir imagem destacada</strong>
-                            <small id="imageStatus">A imagem será otimizada automaticamente</small>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- Intervalo -->
                 <div class="settings-section">
                     <h4><i class="fas fa-clock"></i> Intervalo entre mensagens</h4>

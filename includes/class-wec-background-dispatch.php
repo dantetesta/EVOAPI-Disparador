@@ -207,7 +207,7 @@ class WEC_Background_Dispatch
             $period = 'madrugada';
         }
         
-        // Saudações COM nome
+        // Saudações COM nome (10 variações por período)
         $greetings_with_name = [
             'manha' => [
                 "Olá, {NAME}! Bom dia ☀️",
@@ -215,6 +215,11 @@ class WEC_Background_Dispatch
                 "Olá {NAME}, tudo bem? Bom dia!",
                 "{NAME}, bom dia! Espero que esteja bem.",
                 "Bom dia, {NAME}! Tudo certo por aí?",
+                "E aí, {NAME}! Bom dia!",
+                "{NAME}, tenha um excelente dia!",
+                "Bom dia! Como vai, {NAME}?",
+                "Olá {NAME}! Que seu dia seja produtivo!",
+                "{NAME}, bom dia! Tudo bem com você?",
             ],
             'tarde' => [
                 "Olá, {NAME}! Boa tarde ☀️",
@@ -222,6 +227,11 @@ class WEC_Background_Dispatch
                 "Olá {NAME}, tudo bem? Boa tarde!",
                 "{NAME}, boa tarde! Espero que esteja bem.",
                 "Boa tarde, {NAME}! Tudo certo por aí?",
+                "E aí, {NAME}! Boa tarde!",
+                "{NAME}, tenha uma excelente tarde!",
+                "Boa tarde! Como vai, {NAME}?",
+                "Olá {NAME}! Espero que sua tarde esteja sendo ótima!",
+                "{NAME}, boa tarde! Tudo bem com você?",
             ],
             'noite' => [
                 "Olá, {NAME}! Boa noite 🌙",
@@ -229,16 +239,27 @@ class WEC_Background_Dispatch
                 "Olá {NAME}, tudo bem? Boa noite!",
                 "{NAME}, boa noite! Espero que esteja bem.",
                 "Boa noite, {NAME}! Tudo certo por aí?",
+                "E aí, {NAME}! Boa noite!",
+                "{NAME}, tenha uma excelente noite!",
+                "Boa noite! Como vai, {NAME}?",
+                "Olá {NAME}! Espero que sua noite esteja tranquila!",
+                "{NAME}, boa noite! Tudo bem com você?",
             ],
             'madrugada' => [
                 "Olá, {NAME}!",
                 "Olá {NAME}, tudo bem?",
                 "{NAME}, espero que esteja bem!",
                 "Olá, {NAME}! Tudo certo?",
+                "E aí, {NAME}! Tudo bem?",
+                "{NAME}, como você está?",
+                "Olá {NAME}! Espero que esteja tudo certo!",
+                "{NAME}, tudo bem por aí?",
+                "Olá! Como vai, {NAME}?",
+                "{NAME}, espero encontrá-lo bem!",
             ],
         ];
         
-        // Saudações SEM nome (genéricas)
+        // Saudações SEM nome (10 variações por período)
         $greetings_without_name = [
             'manha' => [
                 "Olá! Bom dia ☀️",
@@ -246,6 +267,11 @@ class WEC_Background_Dispatch
                 "Olá, bom dia! Espero que esteja bem.",
                 "Bom dia! Tudo certo por aí?",
                 "Olá! Tenha um ótimo dia!",
+                "Bom dia! Como você está?",
+                "Olá! Que seu dia seja excelente!",
+                "Bom dia! Espero que esteja tudo bem!",
+                "Olá! Desejo um dia produtivo!",
+                "Bom dia! Tudo bem com você?",
             ],
             'tarde' => [
                 "Olá! Boa tarde ☀️",
@@ -253,6 +279,11 @@ class WEC_Background_Dispatch
                 "Olá, boa tarde! Espero que esteja bem.",
                 "Boa tarde! Tudo certo por aí?",
                 "Olá! Tenha uma ótima tarde!",
+                "Boa tarde! Como você está?",
+                "Olá! Que sua tarde seja excelente!",
+                "Boa tarde! Espero que esteja tudo bem!",
+                "Olá! Desejo uma tarde produtiva!",
+                "Boa tarde! Tudo bem com você?",
             ],
             'noite' => [
                 "Olá! Boa noite 🌙",
@@ -260,12 +291,23 @@ class WEC_Background_Dispatch
                 "Olá, boa noite! Espero que esteja bem.",
                 "Boa noite! Tudo certo por aí?",
                 "Olá! Tenha uma ótima noite!",
+                "Boa noite! Como você está?",
+                "Olá! Que sua noite seja tranquila!",
+                "Boa noite! Espero que esteja tudo bem!",
+                "Olá! Desejo uma noite agradável!",
+                "Boa noite! Tudo bem com você?",
             ],
             'madrugada' => [
                 "Olá! Tudo bem?",
                 "Olá! Espero que esteja bem.",
                 "Olá! Tudo certo por aí?",
                 "Olá! Como vai?",
+                "Olá! Como você está?",
+                "Olá! Espero encontrá-lo bem!",
+                "Olá! Tudo bem com você?",
+                "Olá! Espero que esteja tudo certo!",
+                "Olá! Como estão as coisas?",
+                "Olá! Tudo tranquilo?",
             ],
         ];
         
