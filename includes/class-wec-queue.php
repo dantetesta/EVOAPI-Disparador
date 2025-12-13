@@ -37,6 +37,9 @@ class WEC_Queue
         add_action('wp_ajax_wec_get_batch_status', [$this, 'ajax_get_batch_status']);
         add_action('wp_ajax_wec_pause_batch', [$this, 'ajax_pause_batch']);
         add_action('wp_ajax_wec_cancel_batch', [$this, 'ajax_cancel_batch']);
+        add_action('wp_ajax_wec_get_post_data', [$this, 'ajax_get_post_data']);
+        add_action('wp_ajax_wec_get_today_stats', [$this, 'ajax_get_today_stats']);
+        add_action('wp_ajax_wec_cancel_dispatch', [$this, 'ajax_cancel_dispatch']);
     }
 
     /**
@@ -847,5 +850,78 @@ class WEC_Queue
         ]);
 
         return $query->found_posts;
+    }
+
+    /**
+     * AJAX: Busca dados de um post para o dashboard
+     */
+    public function ajax_get_post_data(): void
+    {
+        if (!WEC_Security::verify_nonce($_POST['nonce'] ?? '')) {
+            wp_send_json_error(['message' => 'Nonce inválido']);
+        }
+
+        $post_id = intval($_POST['post_id'] ?? 0);
+        if (!$post_id) {
+            wp_send_json_error(['message' => 'Post ID inválido']);
+        }
+
+        $post = get_post($post_id);
+        if (!$post) {
+            wp_send_json_error(['message' => 'Post não encontrado']);
+        }
+
+        wp_send_json_success([
+            'id' => $post->ID,
+            'title' => $post->post_title,
+            'excerpt' => wp_trim_words(get_the_excerpt($post), 30, '...'),
+            'url' => get_permalink($post_id),
+            'image' => get_the_post_thumbnail_url($post_id, 'large'),
+            'date' => get_the_date('d/m/Y', $post),
+            'categories' => wp_get_post_categories($post_id, ['fields' => 'names']),
+        ]);
+    }
+
+    /**
+     * AJAX: Busca estatísticas do dia
+     */
+    public function ajax_get_today_stats(): void
+    {
+        if (!WEC_Security::verify_nonce($_POST['nonce'] ?? '')) {
+            wp_send_json_error(['message' => 'Nonce inválido']);
+        }
+
+        global $wpdb;
+        $table = $wpdb->prefix . self::TABLE_NAME;
+        $today = date('Y-m-d');
+
+        $total = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table WHERE status = 'sent' AND DATE(sent_at) = %s",
+            $today
+        ));
+
+        wp_send_json_success([
+            'total' => intval($total),
+            'date' => $today,
+        ]);
+    }
+
+    /**
+     * AJAX: Cancela disparo em andamento
+     */
+    public function ajax_cancel_dispatch(): void
+    {
+        if (!WEC_Security::verify_nonce($_POST['nonce'] ?? '')) {
+            wp_send_json_error(['message' => 'Nonce inválido']);
+        }
+
+        $batch_id = intval($_POST['batch_id'] ?? 0);
+        if (!$batch_id) {
+            wp_send_json_error(['message' => 'Batch ID inválido']);
+        }
+
+        $this->update_batch_status($batch_id, 'cancelled');
+
+        wp_send_json_success(['message' => 'Disparo cancelado']);
     }
 }

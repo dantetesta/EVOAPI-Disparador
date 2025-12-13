@@ -47,6 +47,27 @@ class WEC_Admin
     {
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
         add_action('admin_footer', [$this, 'render_modals']);
+        add_action('admin_bar_menu', [$this, 'add_admin_bar_link'], 100);
+    }
+
+    /**
+     * Adiciona link do Dashboard na admin bar
+     */
+    public function add_admin_bar_link($wp_admin_bar): void
+    {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        $wp_admin_bar->add_node([
+            'id' => 'wec-dashboard',
+            'title' => '<span class="ab-icon dashicons dashicons-whatsapp" style="margin-right:5px;"></span> WhatsApp Dispatcher',
+            'href' => WEC_PLUGIN_URL . 'dashboard/',
+            'meta' => [
+                'target' => '_blank',
+                'title' => 'Abrir Dashboard de Disparos',
+            ],
+        ]);
     }
 
     /**
