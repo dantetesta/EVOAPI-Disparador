@@ -486,12 +486,12 @@ class WEC_API
         // Endpoint da Evolution API para envio de mídia
         $endpoint = $api_url . '/message/sendMedia/' . $instance;
 
-        // Payload com base64
+        // Payload com base64 - formato Evolution API v2
         $payload = [
             'number' => $phone_for_api,
             'mediatype' => 'image',
             'mimetype' => $mimetype,
-            'media' => 'data:' . $mimetype . ';base64,' . $base64,
+            'media' => $base64,
             'caption' => $caption,
             'fileName' => 'noticia.jpg',
         ];

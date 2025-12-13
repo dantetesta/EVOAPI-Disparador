@@ -843,7 +843,7 @@ class WEC_Queue
     /**
      * Incrementa contador do batch
      */
-    private function increment_batch_counter(int $batch_id, string $field): void
+    public function increment_batch_counter(int $batch_id, string $field): void
     {
         global $wpdb;
         $table = $wpdb->prefix . self::BATCH_TABLE;
