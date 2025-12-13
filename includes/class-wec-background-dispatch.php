@@ -145,8 +145,12 @@ class WEC_Background_Dispatch
     {
         $api = WEC_API::instance();
 
-        // Montar mensagem
-        $message = "📰 *{$batch->post_title}*\n\n";
+        // Gerar saudação personalizada
+        $greeting = $this->generate_greeting($item->lead_name);
+
+        // Montar mensagem com saudação
+        $message = "{$greeting}\n\n";
+        $message .= "📰 *{$batch->post_title}*\n\n";
         if ($batch->post_excerpt) {
             $message .= "{$batch->post_excerpt}\n\n";
         }
@@ -174,6 +178,129 @@ class WEC_Background_Dispatch
         }
 
         return $result;
+    }
+
+    /**
+     * Gera saudação personalizada com variações
+     */
+    private function generate_greeting(string $lead_name): string
+    {
+        $hour = (int) current_time('G');
+        $first_name = $this->get_first_name($lead_name);
+        
+        // Determinar período do dia
+        if ($hour >= 5 && $hour < 12) {
+            $period = 'manha';
+        } elseif ($hour >= 12 && $hour < 18) {
+            $period = 'tarde';
+        } elseif ($hour >= 18 && $hour < 24) {
+            $period = 'noite';
+        } else {
+            $period = 'madrugada';
+        }
+        
+        // Saudações COM nome
+        $greetings_with_name = [
+            'manha' => [
+                "Olá, {NAME}! Bom dia ☀️",
+                "Bom dia, {NAME}!",
+                "Olá {NAME}, tudo bem? Bom dia!",
+                "{NAME}, bom dia! Espero que esteja bem.",
+                "Bom dia, {NAME}! Tudo certo por aí?",
+            ],
+            'tarde' => [
+                "Olá, {NAME}! Boa tarde ☀️",
+                "Boa tarde, {NAME}!",
+                "Olá {NAME}, tudo bem? Boa tarde!",
+                "{NAME}, boa tarde! Espero que esteja bem.",
+                "Boa tarde, {NAME}! Tudo certo por aí?",
+            ],
+            'noite' => [
+                "Olá, {NAME}! Boa noite 🌙",
+                "Boa noite, {NAME}!",
+                "Olá {NAME}, tudo bem? Boa noite!",
+                "{NAME}, boa noite! Espero que esteja bem.",
+                "Boa noite, {NAME}! Tudo certo por aí?",
+            ],
+            'madrugada' => [
+                "Olá, {NAME}!",
+                "Olá {NAME}, tudo bem?",
+                "{NAME}, espero que esteja bem!",
+                "Olá, {NAME}! Tudo certo?",
+            ],
+        ];
+        
+        // Saudações SEM nome (genéricas)
+        $greetings_without_name = [
+            'manha' => [
+                "Olá! Bom dia ☀️",
+                "Bom dia! Tudo bem?",
+                "Olá, bom dia! Espero que esteja bem.",
+                "Bom dia! Tudo certo por aí?",
+                "Olá! Tenha um ótimo dia!",
+            ],
+            'tarde' => [
+                "Olá! Boa tarde ☀️",
+                "Boa tarde! Tudo bem?",
+                "Olá, boa tarde! Espero que esteja bem.",
+                "Boa tarde! Tudo certo por aí?",
+                "Olá! Tenha uma ótima tarde!",
+            ],
+            'noite' => [
+                "Olá! Boa noite 🌙",
+                "Boa noite! Tudo bem?",
+                "Olá, boa noite! Espero que esteja bem.",
+                "Boa noite! Tudo certo por aí?",
+                "Olá! Tenha uma ótima noite!",
+            ],
+            'madrugada' => [
+                "Olá! Tudo bem?",
+                "Olá! Espero que esteja bem.",
+                "Olá! Tudo certo por aí?",
+                "Olá! Como vai?",
+            ],
+        ];
+        
+        // Escolher saudação aleatória
+        if (!empty($first_name)) {
+            $options = $greetings_with_name[$period];
+            $greeting = $options[array_rand($options)];
+            return str_replace('{NAME}', $first_name, $greeting);
+        } else {
+            $options = $greetings_without_name[$period];
+            return $options[array_rand($options)];
+        }
+    }
+
+    /**
+     * Extrai o primeiro nome do lead
+     */
+    private function get_first_name(string $full_name): string
+    {
+        $full_name = trim($full_name);
+        
+        if (empty($full_name)) {
+            return '';
+        }
+        
+        // Verificar se não é um número de telefone ou email
+        if (preg_match('/^[\d\+\-\(\)\s]+$/', $full_name)) {
+            return '';
+        }
+        if (filter_var($full_name, FILTER_VALIDATE_EMAIL)) {
+            return '';
+        }
+        
+        // Pegar primeiro nome
+        $parts = explode(' ', $full_name);
+        $first_name = ucfirst(strtolower(trim($parts[0])));
+        
+        // Verificar se é um nome válido (pelo menos 2 letras)
+        if (strlen($first_name) < 2) {
+            return '';
+        }
+        
+        return $first_name;
     }
 
     /**
