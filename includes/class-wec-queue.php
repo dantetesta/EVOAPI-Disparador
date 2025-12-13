@@ -139,19 +139,32 @@ class WEC_Queue
 
         // Interesses podem vir como JSON string ou array
         $interests_raw = $_POST['interests'] ?? [];
+        
+        // Debug log
+        error_log('[WEC DEBUG] interests_raw type: ' . gettype($interests_raw));
+        error_log('[WEC DEBUG] interests_raw value: ' . print_r($interests_raw, true));
+        
         if (is_string($interests_raw)) {
             $interests = json_decode(stripslashes($interests_raw), true) ?: [];
         } else {
-            $interests = array_map('sanitize_text_field', $interests_raw);
+            $interests = array_map('sanitize_text_field', (array)$interests_raw);
         }
+        
+        // Sanitizar cada interesse
+        $interests = array_filter(array_map('sanitize_text_field', $interests));
+        
+        error_log('[WEC DEBUG] interests final: ' . print_r($interests, true));
         
         $send_all = isset($_POST['send_all']) && $_POST['send_all'] === 'true';
 
         $leads = $this->get_leads_by_interests($interests, $send_all);
+        
+        error_log('[WEC DEBUG] leads count: ' . count($leads));
 
         wp_send_json_success([
             'leads' => $leads,
             'total' => count($leads),
+            'debug_interests' => $interests,
         ]);
     }
 
@@ -265,10 +278,14 @@ class WEC_Queue
 
         // Filtrar por interesses se não for "enviar para todos"
         if (!$send_all && !empty($interests)) {
+            // Detectar se são IDs numéricos ou slugs
+            $first_interest = reset($interests);
+            $field = is_numeric($first_interest) ? 'term_id' : 'slug';
+            
             $args['tax_query'] = [
                 [
                     'taxonomy' => WEC_CPT::TAXONOMY_INTEREST,
-                    'field' => 'slug',
+                    'field' => $field,
                     'terms' => $interests,
                     'operator' => 'IN'
                 ]
