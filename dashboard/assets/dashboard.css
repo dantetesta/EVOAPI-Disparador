@@ -1357,6 +1357,27 @@ body {
     color: #ef4444;
 }
 
+.btn-close-dispatch {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--primary);
+    color: white;
+    transition: var(--transition);
+}
+
+.btn-close-dispatch:hover {
+    background: var(--primary-dark);
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
     .stats-grid {

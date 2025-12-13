@@ -805,11 +805,31 @@
             
             this.isDispatching = false;
             this.currentBatchId = null;
-            this.stopStatusPolling(); // Garantir que polling parou
+            this.stopStatusPolling();
             this.addLogEntry('🎉 ' + WEC_DASHBOARD.i18n.dispatchComplete, 'success');
+            
+            // Mudar título e botões para "Concluído"
+            const header = document.querySelector('.progress-header h3');
+            if (header) header.innerHTML = '<i class="fas fa-check-circle"></i> Disparo Concluído!';
+            
+            // Substituir botões por "Fechar"
+            const actionsDiv = document.querySelector('.progress-actions');
+            if (actionsDiv) {
+                actionsDiv.innerHTML = `
+                    <button class="btn-close-dispatch" onclick="Dashboard.closeProgressPanel()">
+                        <i class="fas fa-check"></i> Fechar
+                    </button>
+                `;
+            }
             
             // Update today stats
             this.loadTodayStats();
+        },
+        
+        // Fechar painel de progresso
+        closeProgressPanel: function() {
+            const panel = document.getElementById('progressPanel');
+            if (panel) panel.classList.remove('active');
         },
 
         // Toggle pause
