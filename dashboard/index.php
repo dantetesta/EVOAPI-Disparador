@@ -271,6 +271,28 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                     </div>
                 </div>
                 
+                <!-- Filtros de Interesse -->
+                <div class="leads-filters">
+                    <div class="filter-label"><i class="fas fa-filter"></i> Filtrar por interesse:</div>
+                    <div class="filter-tags">
+                        <button class="filter-tag active" data-interest="all">
+                            Todos <span class="filter-count"><?php echo $total_leads; ?></span>
+                        </button>
+                        <?php foreach ($interests as $interest): 
+                            $count = get_posts([
+                                'post_type' => WEC_CPT::POST_TYPE,
+                                'posts_per_page' => -1,
+                                'fields' => 'ids',
+                                'tax_query' => [['taxonomy' => 'wec_interest', 'field' => 'term_id', 'terms' => $interest->term_id]]
+                            ]);
+                        ?>
+                            <button class="filter-tag" data-interest="<?php echo esc_attr($interest->slug); ?>">
+                                <?php echo esc_html($interest->name); ?> <span class="filter-count"><?php echo count($count); ?></span>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                
                 <div class="leads-table-wrapper">
                     <table class="leads-table">
                         <thead>
@@ -293,9 +315,11 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                             if ($leads_query->have_posts()):
                                 while ($leads_query->have_posts()): $leads_query->the_post();
                                     $phone = get_post_meta(get_the_ID(), '_wec_whatsapp_e164', true);
-                                    $lead_interests = wp_get_post_terms(get_the_ID(), 'wec_interest', ['fields' => 'names']);
+                                    $lead_interests = wp_get_post_terms(get_the_ID(), 'wec_interest');
+                                    $interest_slugs = array_map(function($t) { return $t->slug; }, $lead_interests);
+                                    $interest_names = array_map(function($t) { return $t->name; }, $lead_interests);
                             ?>
-                                <tr>
+                                <tr data-interests="<?php echo esc_attr(implode(',', $interest_slugs)); ?>" data-name="<?php echo esc_attr(get_the_title()); ?>">
                                     <td>
                                         <div class="lead-name">
                                             <div class="lead-avatar"><?php echo strtoupper(substr(get_the_title(), 0, 2)); ?></div>
@@ -304,9 +328,9 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                                     </td>
                                     <td><code><?php echo esc_html($phone ?: '-'); ?></code></td>
                                     <td>
-                                        <?php if ($lead_interests): ?>
-                                            <?php foreach ($lead_interests as $int): ?>
-                                                <span class="interest-tag"><?php echo esc_html($int); ?></span>
+                                        <?php if ($interest_names): ?>
+                                            <?php foreach ($interest_names as $int_name): ?>
+                                                <span class="interest-tag"><?php echo esc_html($int_name); ?></span>
                                             <?php endforeach; ?>
                                         <?php else: ?>
                                             <span class="no-interest">Nenhum</span>

@@ -47,6 +47,21 @@
                 });
             });
 
+            // Filtros de interesse na aba Contatos
+            document.querySelectorAll('.filter-tag').forEach(tag => {
+                tag.addEventListener('click', function() {
+                    self.filterLeadsByInterest(this.dataset.interest);
+                    // Atualizar estado ativo
+                    document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Busca de leads
+            document.getElementById('searchLeads')?.addEventListener('input', function(e) {
+                self.filterLeadsByName(e.target.value);
+            });
+
             // Search posts
             document.getElementById('searchPosts')?.addEventListener('input', function(e) {
                 self.filterPosts(e.target.value);
@@ -120,6 +135,32 @@
             // Pause/Cancel dispatch
             document.getElementById('btnPause')?.addEventListener('click', () => self.togglePause());
             document.getElementById('btnCancelDispatch')?.addEventListener('click', () => self.cancelDispatch());
+        },
+
+        // Filtrar leads por interesse
+        filterLeadsByInterest: function(interest) {
+            const rows = document.querySelectorAll('#leadsTableBody tr');
+            
+            rows.forEach(row => {
+                if (interest === 'all') {
+                    row.style.display = '';
+                } else {
+                    const rowInterests = row.dataset.interests || '';
+                    const hasInterest = rowInterests.split(',').includes(interest);
+                    row.style.display = hasInterest ? '' : 'none';
+                }
+            });
+        },
+
+        // Filtrar leads por nome
+        filterLeadsByName: function(query) {
+            const rows = document.querySelectorAll('#leadsTableBody tr');
+            const q = query.toLowerCase();
+            
+            rows.forEach(row => {
+                const name = (row.dataset.name || '').toLowerCase();
+                row.style.display = name.includes(q) ? '' : 'none';
+            });
         },
 
         // Navegar para uma página
