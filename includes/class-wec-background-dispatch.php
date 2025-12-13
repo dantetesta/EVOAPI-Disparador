@@ -593,17 +593,29 @@ class WEC_Background_Dispatch
         $batch_table = $wpdb->prefix . 'wec_dispatch_batches';
         $queue_table = $wpdb->prefix . 'wec_dispatch_queue';
 
+        // Lock para evitar processamento simultâneo
+        $lock_key = 'wec_processing_lock';
+        $lock = get_transient($lock_key);
+        if ($lock) {
+            wp_send_json_success(['message' => 'Processando...', 'has_pending' => true, 'locked' => true]);
+            return;
+        }
+        
+        // Setar lock por 60 segundos (será liberado ao final)
+        set_transient($lock_key, time(), 60);
+
         // Buscar batch ativo
         $batch = $wpdb->get_row(
             "SELECT * FROM $batch_table WHERE status IN ('processing', 'pending') ORDER BY created_at ASC LIMIT 1"
         );
 
         if (!$batch) {
+            delete_transient($lock_key);
             wp_send_json_success(['message' => 'Nenhum disparo ativo', 'has_pending' => false]);
             return;
         }
 
-        // Buscar próximo item pendente
+        // Buscar próximo item pendente (usando FOR UPDATE para lock de linha)
         $item = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $queue_table WHERE batch_id = %d AND status = 'pending' ORDER BY id ASC LIMIT 1",
             $batch->id
@@ -612,16 +624,33 @@ class WEC_Background_Dispatch
         if (!$item) {
             // Batch completo
             $wpdb->update($batch_table, ['status' => 'completed', 'completed_at' => current_time('mysql')], ['id' => $batch->id]);
+            delete_transient($lock_key);
             wp_send_json_success(['message' => 'Batch completo', 'has_pending' => false, 'batch_completed' => true]);
             return;
         }
 
-        // Marcar como processing
-        $wpdb->update($queue_table, ['status' => 'processing'], ['id' => $item->id]);
+        // Marcar como processing IMEDIATAMENTE para evitar duplicação
+        $updated = $wpdb->update($queue_table, ['status' => 'processing'], ['id' => $item->id, 'status' => 'pending']);
+        
+        if ($updated === 0) {
+            // Outro processo já pegou este item
+            delete_transient($lock_key);
+            wp_send_json_success(['message' => 'Item já em processamento', 'has_pending' => true]);
+            return;
+        }
+
+        // Delay aleatório ANTES de enviar (baseado nas configurações do batch)
+        $delay_min = isset($batch->delay_min) ? (int)$batch->delay_min : 4;
+        $delay_max = isset($batch->delay_max) ? (int)$batch->delay_max : 20;
+        $delay = rand($delay_min, $delay_max);
+        sleep($delay);
 
         // Enviar mensagem
         $queue = WEC_Queue::instance();
         $result = $this->send_news_message($batch, $item, $queue);
+
+        // Liberar lock
+        delete_transient($lock_key);
 
         if ($result['success']) {
             $wpdb->update($queue_table, [
@@ -635,6 +664,7 @@ class WEC_Background_Dispatch
                 'status' => 'sent',
                 'lead_name' => $item->lead_name,
                 'has_pending' => true,
+                'delay_used' => $delay,
             ]);
         } else {
             $wpdb->update($queue_table, [
@@ -650,6 +680,7 @@ class WEC_Background_Dispatch
                 'lead_name' => $item->lead_name,
                 'error' => $result['error'] ?? 'Erro desconhecido',
                 'has_pending' => true,
+                'delay_used' => $delay,
             ]);
         }
     }
