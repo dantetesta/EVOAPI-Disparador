@@ -2,15 +2,15 @@
  * WhatsApp Evolution Clients - News Dispatcher Styles
  * @author Dante Testa <contato@dantetesta.com.br>
  * @since 1.2.0
- * @updated 2025-12-13 00:10:00
+ * @updated 2025-12-13 00:50:00
  */
 
 /* Off-Canvas Panel */
 .wec-offcanvas {
     position: fixed;
     top: 32px; /* Admin bar */
-    right: -55%;
-    width: 55%;
+    right: -65%;
+    width: 65%;
     height: calc(100vh - 32px);
     background: white;
     box-shadow: -5px 0 25px rgba(0,0,0,0.15);
@@ -917,6 +917,15 @@
     color: #6c757d;
 }
 
+/* Seleção por Interesse - esconde quando não está ativo */
+.wec-interests-wrapper {
+    display: none;
+}
+
+.wec-interests-wrapper.active {
+    display: block;
+}
+
 /* Seleção Individual de Contatos */
 .wec-contacts-selection {
     display: none;
@@ -1065,8 +1074,8 @@
 /* Responsivo Off-Canvas */
 @media (max-width: 1200px) {
     .wec-offcanvas {
-        width: 70%;
-        right: -70%;
+        width: 80%;
+        right: -80%;
     }
 }
 
