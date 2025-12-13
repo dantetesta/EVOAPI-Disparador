@@ -466,6 +466,77 @@ class WEC_API
     }
 
     /**
+     * Envia imagem em base64 com legenda (otimizado para WhatsApp)
+     */
+    public function send_image_base64(string $phone, string $base64, string $mimetype, string $caption): array
+    {
+        if (!WEC_Settings::is_configured()) {
+            return ['success' => false, 'error' => 'API não configurada'];
+        }
+
+        if (!WEC_Security::validate_phone($phone)) {
+            return ['success' => false, 'error' => 'Telefone inválido'];
+        }
+
+        $api_url = WEC_Settings::get_api_url();
+        $instance = WEC_Settings::get_instance_name();
+        $token = WEC_Settings::get_token();
+        $phone_for_api = WEC_Security::format_phone_for_api($phone);
+
+        // Endpoint da Evolution API para envio de mídia
+        $endpoint = $api_url . '/message/sendMedia/' . $instance;
+
+        // Payload com base64
+        $payload = [
+            'number' => $phone_for_api,
+            'mediatype' => 'image',
+            'mimetype' => $mimetype,
+            'media' => 'data:' . $mimetype . ';base64,' . $base64,
+            'caption' => $caption,
+            'fileName' => 'noticia.jpg',
+        ];
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[WEC API] Enviando imagem base64: ' . $endpoint);
+            error_log('[WEC API] Base64 size: ' . round(strlen($base64) / 1024) . 'KB');
+        }
+
+        $response = wp_remote_post($endpoint, [
+            'timeout' => 180,
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'apikey' => $token,
+            ],
+            'body' => wp_json_encode($payload),
+            'sslverify' => false,
+        ]);
+
+        if (is_wp_error($response)) {
+            return ['success' => false, 'error' => $response->get_error_message()];
+        }
+
+        $http_code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[WEC API] Response base64: ' . $http_code . ' - ' . substr($body, 0, 500));
+        }
+
+        if ($http_code !== 200 && $http_code !== 201) {
+            return [
+                'success' => false,
+                'error' => $data['message'] ?? $data['error'] ?? "HTTP $http_code"
+            ];
+        }
+
+        return [
+            'success' => true,
+            'message_id' => $data['key']['id'] ?? null,
+        ];
+    }
+
+    /**
      * Envia imagem com legenda (caption) - mensagem única
      */
     public function send_image_with_caption(string $phone, string $image_url, string $caption): array

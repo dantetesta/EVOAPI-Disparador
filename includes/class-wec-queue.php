@@ -513,13 +513,24 @@ class WEC_Queue
             error_log('[WEC News] Imagem: ' . ($batch->post_image ?: 'nenhuma'));
         }
 
-        // Se tem imagem, envia imagem com texto como legenda
+        // Se tem imagem, otimiza e envia como base64
         if ($batch->post_image) {
-            $result = $api->send_image_with_caption($item->lead_phone, $batch->post_image, $message);
+            $optimized = $this->optimize_image_for_whatsapp($batch->post_image, $batch->post_id);
+            
+            if ($optimized && isset($optimized['base64'])) {
+                $result = $api->send_image_base64($item->lead_phone, $optimized['base64'], $optimized['mimetype'], $message);
+                
+                if (!$result['success']) {
+                    error_log('[WEC News] Erro base64, tentando URL: ' . $result['error']);
+                    $result = $api->send_image_with_caption($item->lead_phone, $batch->post_image, $message);
+                }
+            } else {
+                $result = $api->send_image_with_caption($item->lead_phone, $batch->post_image, $message);
+            }
             
             // Se falhou, tenta só texto
             if (!$result['success']) {
-                error_log('[WEC News] Erro imagem+caption, tentando só texto: ' . $result['error']);
+                error_log('[WEC News] Erro imagem, tentando só texto: ' . $result['error']);
                 $result = $api->send_message($item->lead_phone, $message);
             }
         } else {
@@ -528,6 +539,116 @@ class WEC_Queue
         }
 
         return $result;
+    }
+
+    /**
+     * Otimiza imagem para envio no WhatsApp (max 500KB, JPEG)
+     */
+    private function optimize_image_for_whatsapp(string $image_url, int $post_id = 0): ?array
+    {
+        // Tentar pegar o caminho local da imagem primeiro
+        $upload_dir = wp_upload_dir();
+        $local_path = null;
+        
+        // Se é uma URL do próprio site, converter para caminho local
+        if (strpos($image_url, $upload_dir['baseurl']) !== false) {
+            $local_path = str_replace($upload_dir['baseurl'], $upload_dir['basedir'], $image_url);
+        }
+        
+        // Se não encontrou caminho local, baixar a imagem
+        if (!$local_path || !file_exists($local_path)) {
+            $temp_file = download_url($image_url, 30);
+            if (is_wp_error($temp_file)) {
+                error_log('[WEC Image] Erro ao baixar: ' . $temp_file->get_error_message());
+                return null;
+            }
+            $local_path = $temp_file;
+            $is_temp = true;
+        } else {
+            $is_temp = false;
+        }
+
+        // Verificar tamanho original
+        $original_size = filesize($local_path);
+        $max_size = 500 * 1024; // 500KB
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[WEC Image] Tamanho original: ' . round($original_size / 1024) . 'KB');
+        }
+
+        // Se já é pequena o suficiente e é JPEG, usar direto
+        $mime = mime_content_type($local_path);
+        if ($original_size <= $max_size && in_array($mime, ['image/jpeg', 'image/jpg'])) {
+            $base64 = base64_encode(file_get_contents($local_path));
+            if ($is_temp) @unlink($local_path);
+            return [
+                'base64' => $base64,
+                'mimetype' => 'image/jpeg',
+                'size' => $original_size,
+            ];
+        }
+
+        // Precisa otimizar - usar WP Image Editor
+        $editor = wp_get_image_editor($local_path);
+        if (is_wp_error($editor)) {
+            error_log('[WEC Image] Erro editor: ' . $editor->get_error_message());
+            if ($is_temp) @unlink($local_path);
+            return null;
+        }
+
+        // Redimensionar se muito grande (max 1200px de largura)
+        $size = $editor->get_size();
+        if ($size['width'] > 1200) {
+            $editor->resize(1200, null, false);
+        }
+
+        // Salvar como JPEG com qualidade progressivamente menor até caber
+        $temp_output = $upload_dir['basedir'] . '/wec-temp-' . uniqid() . '.jpg';
+        $quality = 85;
+        
+        do {
+            $editor->set_quality($quality);
+            $saved = $editor->save($temp_output, 'image/jpeg');
+            
+            if (is_wp_error($saved)) {
+                error_log('[WEC Image] Erro ao salvar: ' . $saved->get_error_message());
+                if ($is_temp) @unlink($local_path);
+                return null;
+            }
+            
+            $new_size = filesize($saved['path']);
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('[WEC Image] Quality ' . $quality . ': ' . round($new_size / 1024) . 'KB');
+            }
+            
+            if ($new_size <= $max_size) {
+                break;
+            }
+            
+            $quality -= 10;
+            @unlink($saved['path']);
+            
+        } while ($quality >= 30);
+
+        // Converter para base64
+        $base64 = base64_encode(file_get_contents($saved['path']));
+        $final_size = filesize($saved['path']);
+        
+        // Limpar arquivos temporários
+        @unlink($saved['path']);
+        if ($is_temp) @unlink($local_path);
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[WEC Image] Final: ' . round($final_size / 1024) . 'KB (quality: ' . $quality . ')');
+        }
+
+        return [
+            'base64' => $base64,
+            'mimetype' => 'image/jpeg',
+            'size' => $final_size,
+            'quality' => $quality,
+        ];
     }
 
     /**
