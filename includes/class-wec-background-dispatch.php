@@ -158,23 +158,30 @@ class WEC_Background_Dispatch
         $message .= "🔗 Leia mais: {$batch->post_url}";
 
         // Se tem imagem, otimiza e envia
-        if ($batch->post_image) {
+        if (!empty($batch->post_image)) {
+            error_log("[WEC] Tentando enviar com imagem: {$batch->post_image}");
+            
             $optimized = $this->optimize_image($batch->post_image);
             
             if ($optimized && isset($optimized['base64'])) {
+                error_log("[WEC] Imagem otimizada OK, enviando base64...");
                 $result = $api->send_image_base64($item->lead_phone, $optimized['base64'], $optimized['mimetype'], $message);
                 
                 if (!$result['success']) {
+                    error_log("[WEC] Base64 falhou: " . ($result['error'] ?? 'erro'));
                     $result = $api->send_image_with_caption($item->lead_phone, $batch->post_image, $message);
                 }
             } else {
+                error_log("[WEC] Otimização falhou, enviando URL direta...");
                 $result = $api->send_image_with_caption($item->lead_phone, $batch->post_image, $message);
             }
             
             if (!$result['success']) {
+                error_log("[WEC] Envio de imagem falhou, enviando só texto: " . ($result['error'] ?? 'erro'));
                 $result = $api->send_message($item->lead_phone, $message);
             }
         } else {
+            error_log("[WEC] Batch sem imagem, enviando só texto");
             $result = $api->send_message($item->lead_phone, $message);
         }
 
@@ -431,8 +438,12 @@ class WEC_Background_Dispatch
         
         // Imagem apenas se usuário quiser e post tiver
         $post_image = '';
+        error_log("[WEC] include_image: " . ($include_image ? 'true' : 'false'));
+        error_log("[WEC] has_post_thumbnail: " . (has_post_thumbnail($post_id) ? 'true' : 'false'));
+        
         if ($include_image && has_post_thumbnail($post_id)) {
             $post_image = get_the_post_thumbnail_url($post_id, 'large') ?: '';
+            error_log("[WEC] post_image URL: " . $post_image);
         }
         
         $insert_result = $wpdb->insert($batch_table, [

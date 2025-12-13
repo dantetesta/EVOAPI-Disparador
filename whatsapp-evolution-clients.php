@@ -129,8 +129,9 @@ final class WhatsApp_Evolution_Clients {
         // AJAX
         WEC_Ajax::instance();
         
-        // Queue (fila de disparos)
+        // Queue (fila de disparos) - garantir que tabelas existem
         WEC_Queue::instance();
+        WEC_Queue::create_tables();
         
         // Background Dispatch (disparo em segundo plano)
         WEC_Background_Dispatch::instance();
