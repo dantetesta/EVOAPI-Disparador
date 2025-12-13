@@ -73,6 +73,17 @@ class WEC_Settings
      */
     public function add_settings_page(): void
     {
+        // Painel de Disparo (link externo)
+        add_submenu_page(
+            'edit.php?post_type=wec_client',
+            __('Painel de Disparo', 'whatsapp-evolution-clients'),
+            __('📢 Painel de Disparo', 'whatsapp-evolution-clients'),
+            'manage_options',
+            'wec-dispatch-panel',
+            [$this, 'redirect_to_dashboard']
+        );
+
+        // Configurações
         add_submenu_page(
             'edit.php?post_type=wec_client',
             __('Configurações', 'whatsapp-evolution-clients'),
@@ -81,6 +92,15 @@ class WEC_Settings
             self::PAGE_SLUG,
             [$this, 'render_settings_page']
         );
+    }
+
+    /**
+     * Redireciona para o dashboard de disparo
+     */
+    public function redirect_to_dashboard(): void
+    {
+        wp_redirect(WEC_PLUGIN_URL . 'dashboard/');
+        exit;
     }
 
     /**
