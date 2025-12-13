@@ -310,7 +310,8 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                 <div class="posts-grid" id="postsGrid">
                     <?php if ($posts_query->have_posts()): ?>
                         <?php while ($posts_query->have_posts()): $posts_query->the_post(); ?>
-                            <div class="post-card" data-post-id="<?php the_ID(); ?>">
+                            <?php $post_cats = get_the_category(); $cat_ids = array_map(function($c) { return $c->term_id; }, $post_cats); ?>
+                            <div class="post-card" data-post-id="<?php the_ID(); ?>" data-categories="<?php echo esc_attr(implode(',', $cat_ids)); ?>">
                                 <div class="post-image">
                                     <?php if (has_post_thumbnail()): ?>
                                         <img src="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'medium'); ?>" alt="<?php the_title_attribute(); ?>">

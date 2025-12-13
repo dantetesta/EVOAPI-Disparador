@@ -122,7 +122,12 @@
 
             // Search posts
             document.getElementById('searchPosts')?.addEventListener('input', function(e) {
-                self.filterPosts(e.target.value);
+                self.filterPosts();
+            });
+
+            // Filter by category
+            document.getElementById('filterCategory')?.addEventListener('change', function(e) {
+                self.filterPosts();
             });
 
             // Dispatch buttons
@@ -288,16 +293,24 @@
             };
         },
 
-        // Filter posts
-        filterPosts: function(query) {
+        // Filter posts (por texto e categoria)
+        filterPosts: function() {
             const cards = document.querySelectorAll('.post-card');
-            const q = query.toLowerCase();
+            const searchInput = document.getElementById('searchPosts');
+            const categorySelect = document.getElementById('filterCategory');
+            
+            const query = (searchInput?.value || '').toLowerCase();
+            const categoryId = categorySelect?.value || '';
             
             cards.forEach(card => {
                 const title = card.querySelector('.post-title')?.textContent.toLowerCase() || '';
                 const excerpt = card.querySelector('.post-excerpt')?.textContent.toLowerCase() || '';
-                const match = title.includes(q) || excerpt.includes(q);
-                card.style.display = match ? '' : 'none';
+                const categories = card.dataset.categories || '';
+                
+                const matchText = !query || title.includes(query) || excerpt.includes(query);
+                const matchCategory = !categoryId || categories.split(',').includes(categoryId);
+                
+                card.style.display = (matchText && matchCategory) ? '' : 'none';
             });
         },
 
