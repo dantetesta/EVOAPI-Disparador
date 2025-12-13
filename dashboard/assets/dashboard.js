@@ -239,6 +239,26 @@
             document.querySelector('.sidebar').classList.remove('active');
         },
 
+        // Atualiza opção de imagem baseado no post
+        updateImageOption: function(post) {
+            const checkbox = document.getElementById('includeImage');
+            const status = document.getElementById('imageStatus');
+            
+            if (!checkbox || !status) return;
+            
+            if (post.image) {
+                checkbox.disabled = false;
+                checkbox.checked = true;
+                status.textContent = 'A imagem será otimizada (600px, 80% qualidade)';
+                status.style.color = '';
+            } else {
+                checkbox.disabled = true;
+                checkbox.checked = false;
+                status.textContent = 'Este post não possui imagem destacada';
+                status.style.color = '#ef4444';
+            }
+        },
+
         // Filter posts
         filterPosts: function(query) {
             const cards = document.querySelectorAll('.post-card');
@@ -273,6 +293,7 @@
                 if (data.success) {
                     self.currentPost = data.data;
                     self.updatePreview(data.data);
+                    self.updateImageOption(data.data);
                     self.showPanel();
                     self.loadAllContacts();
                 } else {
@@ -566,6 +587,7 @@
 
             const delayMin = parseInt(document.getElementById('delayMin')?.value) || 4;
             const delayMax = parseInt(document.getElementById('delayMax')?.value) || 20;
+            const includeImage = document.getElementById('includeImage')?.checked;
 
             // Usar disparo em background
             const data = {
@@ -574,7 +596,8 @@
                 post_id: this.currentPost.id,
                 delay_min: delayMin,
                 delay_max: delayMax,
-                selection_mode: this.selectionMode
+                selection_mode: this.selectionMode,
+                include_image: includeImage ? 'true' : 'false'
             };
 
             if (sendAll) {

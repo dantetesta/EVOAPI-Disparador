@@ -783,6 +783,23 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
             
             <!-- Tab Settings -->
             <div class="offcanvas-content" data-tab="settings">
+                <!-- Opção de Imagem -->
+                <div class="settings-section">
+                    <h4><i class="fas fa-image"></i> Imagem da Notícia</h4>
+                    <p class="settings-desc">Escolha se deseja enviar a imagem destacada junto com a mensagem.</p>
+                    <div class="image-option">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="includeImage" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <div class="toggle-label">
+                            <strong>Incluir imagem destacada</strong>
+                            <small id="imageStatus">A imagem será otimizada automaticamente</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Intervalo -->
                 <div class="settings-section">
                     <h4><i class="fas fa-clock"></i> Intervalo entre mensagens</h4>
                     <p class="settings-desc">Define o tempo de espera entre cada envio para evitar bloqueios.</p>

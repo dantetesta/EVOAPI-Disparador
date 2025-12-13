@@ -215,13 +215,14 @@ class WEC_Background_Dispatch
             return null;
         }
 
+        // Redimensionar para 600px de largura (otimização para WhatsApp)
         $size = $editor->get_size();
-        if ($size['width'] > 1200) {
-            $editor->resize(1200, null, false);
+        if ($size['width'] > 600) {
+            $editor->resize(600, null, false);
         }
 
         $temp_output = $upload_dir['basedir'] . '/wec-temp-' . uniqid() . '.jpg';
-        $quality = 85;
+        $quality = 80; // Qualidade 80% conforme solicitado
         
         do {
             $editor->set_quality($quality);
@@ -269,6 +270,7 @@ class WEC_Background_Dispatch
         $lead_ids = isset($_POST['lead_ids']) ? json_decode(stripslashes($_POST['lead_ids']), true) : [];
         $delay_min = intval($_POST['delay_min'] ?? 4);
         $delay_max = intval($_POST['delay_max'] ?? 20);
+        $include_image = isset($_POST['include_image']) && $_POST['include_image'] === 'true';
 
         if (!$post_id) {
             wp_send_json_error(['message' => 'Post ID inválido']);
@@ -299,12 +301,18 @@ class WEC_Background_Dispatch
         global $wpdb;
         $batch_table = $wpdb->prefix . 'wec_dispatch_batches';
         
+        // Imagem apenas se usuário quiser e post tiver
+        $post_image = '';
+        if ($include_image && has_post_thumbnail($post_id)) {
+            $post_image = get_the_post_thumbnail_url($post_id, 'large') ?: '';
+        }
+        
         $insert_result = $wpdb->insert($batch_table, [
             'post_id' => $post_id,
             'post_title' => $post->post_title,
             'post_excerpt' => wp_trim_words(get_the_excerpt($post), 30, '...'),
             'post_url' => get_permalink($post_id),
-            'post_image' => get_the_post_thumbnail_url($post_id, 'large') ?: '',
+            'post_image' => $post_image,
             'total_leads' => count($leads),
             'delay_min' => $delay_min,
             'delay_max' => $delay_max,
