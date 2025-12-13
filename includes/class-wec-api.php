@@ -466,9 +466,9 @@ class WEC_API
     }
 
     /**
-     * Envia apenas imagem (sem caption)
+     * Envia imagem com legenda (caption) - mensagem única
      */
-    public function send_image(string $phone, string $image_url): array
+    public function send_image_with_caption(string $phone, string $image_url, string $caption): array
     {
         if (!WEC_Settings::is_configured()) {
             return ['success' => false, 'error' => 'API não configurada'];
@@ -483,18 +483,21 @@ class WEC_API
         $token = WEC_Settings::get_token();
         $phone_for_api = WEC_Security::format_phone_for_api($phone);
 
+        // Endpoint da Evolution API para envio de mídia
         $endpoint = $api_url . '/message/sendMedia/' . $instance;
 
+        // Payload com caption
         $payload = [
             'number' => $phone_for_api,
             'mediatype' => 'image',
             'mimetype' => 'image/jpeg',
             'media' => $image_url,
+            'caption' => $caption,
             'fileName' => 'noticia.jpg',
         ];
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('[WEC API] Enviando imagem: ' . $endpoint);
+            error_log('[WEC API] Enviando imagem+caption: ' . $endpoint);
             error_log('[WEC API] Payload: ' . wp_json_encode($payload));
         }
 
@@ -517,7 +520,7 @@ class WEC_API
         $data = json_decode($body, true);
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('[WEC API] Response imagem: ' . $http_code . ' - ' . substr($body, 0, 300));
+            error_log('[WEC API] Response: ' . $http_code . ' - ' . substr($body, 0, 500));
         }
 
         if ($http_code !== 200 && $http_code !== 201) {
