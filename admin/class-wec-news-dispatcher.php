@@ -321,15 +321,21 @@ class WEC_News_Dispatcher
 
                     <!-- Progresso do disparo (aparece sobre as tabs) -->
                     <div class="wec-dispatch-progress" id="wec-dispatch-progress" style="display:none;">
-                        <h4><?php _e('Progresso do Disparo', 'whatsapp-evolution-clients'); ?></h4>
-                        <div class="wec-progress-bar">
-                            <div class="wec-progress-fill" id="wec-progress-fill"></div>
+                        <h4>📤 <?php _e('Progresso do Disparo', 'whatsapp-evolution-clients'); ?></h4>
+                        
+                        <div class="wec-progress-wrapper">
+                            <div class="wec-progress-bar">
+                                <div class="wec-progress-fill" id="wec-progress-fill"></div>
+                                <div class="wec-progress-percent" id="wec-progress-percent">0%</div>
+                            </div>
                         </div>
+                        
                         <div class="wec-progress-stats">
                             <span class="wec-stat-sent">✅ <span id="wec-stat-sent">0</span> enviados</span>
                             <span class="wec-stat-failed">❌ <span id="wec-stat-failed">0</span> falhas</span>
                             <span class="wec-stat-pending">⏳ <span id="wec-stat-pending">0</span> pendentes</span>
                         </div>
+                        
                         <div class="wec-dispatch-log" id="wec-dispatch-log"></div>
                         <div class="wec-next-dispatch" id="wec-next-dispatch"></div>
                     </div>

@@ -396,13 +396,13 @@ class WEC_Queue
     }
 
     /**
-     * Envia mensagem de notícia
+     * Envia mensagem de notícia (imagem + texto separados)
      */
     private function send_news_message($batch, $item): array
     {
         $api = WEC_API::instance();
 
-        // Montar mensagem
+        // Montar mensagem de texto
         $message = "📰 *{$batch->post_title}*\n\n";
         if ($batch->post_excerpt) {
             $message .= "{$batch->post_excerpt}\n\n";
@@ -415,24 +415,22 @@ class WEC_Queue
             error_log('[WEC News] Imagem: ' . ($batch->post_image ?: 'nenhuma'));
         }
 
-        // Se tem imagem, tenta enviar com mídia
+        $result = ['success' => true];
+
+        // Se tem imagem, envia primeiro a imagem
         if ($batch->post_image) {
-            $result = $api->send_media(
-                $item->lead_phone,
-                $batch->post_image,
-                'image',
-                $message
-            );
+            $image_result = $api->send_image($item->lead_phone, $batch->post_image);
             
-            // Se mídia falhou, tenta enviar só texto
-            if (!$result['success']) {
-                error_log('[WEC News] Mídia falhou, tentando texto: ' . $result['error']);
-                $result = $api->send_message($item->lead_phone, $message);
+            if (!$image_result['success']) {
+                error_log('[WEC News] Erro ao enviar imagem: ' . $image_result['error']);
             }
-        } else {
-            // Apenas texto
-            $result = $api->send_message($item->lead_phone, $message);
+            
+            // Aguarda 1 segundo entre imagem e texto
+            usleep(1000000);
         }
+
+        // Depois envia o texto
+        $result = $api->send_message($item->lead_phone, $message);
 
         return $result;
     }

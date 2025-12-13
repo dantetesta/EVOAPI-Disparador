@@ -466,6 +466,74 @@ class WEC_API
     }
 
     /**
+     * Envia apenas imagem (sem caption)
+     */
+    public function send_image(string $phone, string $image_url): array
+    {
+        if (!WEC_Settings::is_configured()) {
+            return ['success' => false, 'error' => 'API não configurada'];
+        }
+
+        if (!WEC_Security::validate_phone($phone)) {
+            return ['success' => false, 'error' => 'Telefone inválido'];
+        }
+
+        $api_url = WEC_Settings::get_api_url();
+        $instance = WEC_Settings::get_instance_name();
+        $token = WEC_Settings::get_token();
+        $phone_for_api = WEC_Security::format_phone_for_api($phone);
+
+        $endpoint = $api_url . '/message/sendMedia/' . $instance;
+
+        $payload = [
+            'number' => $phone_for_api,
+            'mediatype' => 'image',
+            'mimetype' => 'image/jpeg',
+            'media' => $image_url,
+            'fileName' => 'noticia.jpg',
+        ];
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[WEC API] Enviando imagem: ' . $endpoint);
+            error_log('[WEC API] Payload: ' . wp_json_encode($payload));
+        }
+
+        $response = wp_remote_post($endpoint, [
+            'timeout' => 180,
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'apikey' => $token,
+            ],
+            'body' => wp_json_encode($payload),
+            'sslverify' => false,
+        ]);
+
+        if (is_wp_error($response)) {
+            return ['success' => false, 'error' => $response->get_error_message()];
+        }
+
+        $http_code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[WEC API] Response imagem: ' . $http_code . ' - ' . substr($body, 0, 300));
+        }
+
+        if ($http_code !== 200 && $http_code !== 201) {
+            return [
+                'success' => false,
+                'error' => $data['message'] ?? $data['error'] ?? "HTTP $http_code"
+            ];
+        }
+
+        return [
+            'success' => true,
+            'message_id' => $data['key']['id'] ?? null,
+        ];
+    }
+
+    /**
      * Formata um número de telefone para a API
      * Função auxiliar baseada na documentação
      * 

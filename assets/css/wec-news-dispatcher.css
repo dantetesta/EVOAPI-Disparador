@@ -607,75 +607,70 @@
 
 /* Progresso do Disparo */
 .wec-dispatch-progress {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 30px;
+    padding: 25px;
     background: white;
-    border-radius: 0;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
+    min-height: 350px;
 }
 
 .wec-dispatch-progress h4 {
-    margin: 0 0 20px 0;
-    font-size: 18px;
+    margin: 0 0 25px 0;
+    font-size: 20px;
     font-weight: 600;
     color: #333;
     text-align: center;
 }
 
-.wec-dispatch-progress h4::before {
-    content: '📤 ';
+.wec-progress-wrapper {
+    margin-bottom: 25px;
 }
 
 .wec-progress-bar {
-    height: 30px;
+    height: 40px;
     background: #e9ecef;
-    border-radius: 15px;
+    border-radius: 20px;
     overflow: hidden;
-    margin-bottom: 20px;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
 }
 
 .wec-progress-fill {
     height: 100%;
     background: linear-gradient(90deg, #25D366 0%, #128C7E 50%, #075E54 100%);
-    border-radius: 15px;
+    border-radius: 20px;
     transition: width 0.5s ease;
     width: 0%;
+}
+
+.wec-progress-percent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 50px;
-}
-
-.wec-progress-fill::after {
-    content: attr(data-percent);
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 700;
-    color: white;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    color: #333;
+    text-shadow: 0 0 2px white;
 }
 
 .wec-progress-stats {
     display: flex;
     justify-content: center;
-    gap: 30px;
-    margin-bottom: 20px;
-    padding: 15px;
+    gap: 40px;
+    margin-bottom: 25px;
+    padding: 20px;
     background: #f8f9fa;
-    border-radius: 10px;
+    border-radius: 12px;
 }
 
-.wec-progress-stats span {
+.wec-progress-stats > span {
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 15px;
+    gap: 8px;
+    font-size: 16px;
     font-weight: 600;
 }
 
@@ -684,10 +679,10 @@
 .wec-stat-pending { color: #fd7e14; }
 
 .wec-dispatch-log {
-    flex: 1;
+    max-height: 200px;
     overflow-y: auto;
     background: #f8f9fa;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 15px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 13px;
@@ -695,12 +690,9 @@
 }
 
 .wec-log-item {
-    padding: 10px 15px;
+    padding: 12px 15px;
     margin-bottom: 8px;
     border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
     font-size: 13px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
@@ -724,19 +716,27 @@
 }
 
 .wec-next-dispatch {
-    margin-top: 15px;
-    padding: 15px 20px;
-    background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
-    border-radius: 10px;
+    margin-top: 20px;
+    padding: 18px 25px;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-radius: 12px;
     text-align: center;
     font-size: 16px;
-    color: #856404;
+    color: #2e7d32;
     font-weight: 600;
-    border: 1px solid #ffc107;
+    border: 2px solid #81c784;
 }
 
-.wec-next-dispatch::before {
-    content: '⏳ ';
+.wec-dispatch-completed {
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-radius: 12px;
+    text-align: center;
+    font-size: 18px;
+    color: #155724;
+    font-weight: 600;
+    border: 2px solid #28a745;
 }
 
 /* Modal Footer */

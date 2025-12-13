@@ -312,16 +312,21 @@
         },
 
         showDispatchProgress: function(total) {
+            // Esconder tabs e mostrar progresso
+            $('.wec-tabs, .wec-tab-content').hide();
             $('#wec-dispatch-progress').show();
             $('#wec-start-dispatch').hide();
             $('#wec-pause-dispatch, #wec-cancel-dispatch').show();
             $('.wec-modal-cancel').hide();
 
-            $('#wec-progress-fill').css('width', '0%').attr('data-percent', '0%');
+            // Reset progresso
+            $('#wec-progress-fill').css('width', '0%');
+            $('#wec-progress-percent').text('0%');
             $('#wec-stat-sent').text('0');
             $('#wec-stat-failed').text('0');
             $('#wec-stat-pending').text(total);
             $('#wec-dispatch-log').empty();
+            $('#wec-next-dispatch').show().text('Iniciando disparos...');
         },
 
         processNextItem: function() {
@@ -380,10 +385,9 @@
             const item = data.item;
             const progress = data.progress;
 
-            // Atualizar barra de progresso
-            $('#wec-progress-fill')
-                .css('width', progress.percentage + '%')
-                .attr('data-percent', progress.percentage + '%');
+            // Atualizar barra de progresso e porcentagem
+            $('#wec-progress-fill').css('width', progress.percentage + '%');
+            $('#wec-progress-percent').text(Math.round(progress.percentage) + '%');
 
             // Atualizar estatísticas
             $('#wec-stat-sent').text(progress.sent);
@@ -425,7 +429,13 @@
         },
 
         showCompleted: function() {
-            $('#wec-next-dispatch').html('🎉 ' + wecNewsDispatcher.i18n.completed).show();
+            $('#wec-progress-fill').css('width', '100%');
+            $('#wec-progress-percent').text('100%');
+            $('#wec-next-dispatch')
+                .removeClass('wec-next-dispatch')
+                .addClass('wec-dispatch-completed')
+                .html('🎉 ' + wecNewsDispatcher.i18n.completed)
+                .show();
             $('#wec-pause-dispatch, #wec-cancel-dispatch').hide();
             $('.wec-modal-cancel').show().text('Fechar');
         },
