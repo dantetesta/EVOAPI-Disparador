@@ -292,16 +292,19 @@ class WEC_Background_Dispatch
             wp_send_json_error(['message' => 'Nenhum lead encontrado']);
         }
 
+        // Garantir que tabelas existem
+        WEC_Queue::create_tables();
+
         // Criar batch
         global $wpdb;
         $batch_table = $wpdb->prefix . 'wec_dispatch_batches';
         
-        $wpdb->insert($batch_table, [
+        $insert_result = $wpdb->insert($batch_table, [
             'post_id' => $post_id,
             'post_title' => $post->post_title,
             'post_excerpt' => wp_trim_words(get_the_excerpt($post), 30, '...'),
             'post_url' => get_permalink($post_id),
-            'post_image' => get_the_post_thumbnail_url($post_id, 'large'),
+            'post_image' => get_the_post_thumbnail_url($post_id, 'large') ?: '',
             'total_leads' => count($leads),
             'delay_min' => $delay_min,
             'delay_max' => $delay_max,
@@ -311,8 +314,9 @@ class WEC_Background_Dispatch
 
         $batch_id = $wpdb->insert_id;
 
-        if (!$batch_id) {
-            wp_send_json_error(['message' => 'Erro ao criar batch']);
+        if (!$batch_id || $insert_result === false) {
+            error_log('[WEC Background] Erro ao criar batch: ' . $wpdb->last_error);
+            wp_send_json_error(['message' => 'Erro ao criar batch: ' . $wpdb->last_error]);
         }
 
         // Adicionar leads na fila
