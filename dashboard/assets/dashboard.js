@@ -48,15 +48,52 @@
                 });
             });
 
-            // Filtros de interesse na aba Contatos
-            document.querySelectorAll('.filter-tag').forEach(tag => {
-                tag.addEventListener('click', function() {
-                    self.filterLeadsByInterest(this.dataset.interest);
-                    // Atualizar estado ativo
-                    document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
+            // Filtros de interesse hierárquico na aba Contatos
+            const parentSelect = document.getElementById('filterInterestParent');
+            const childSelect = document.getElementById('filterInterestChild');
+            
+            if (parentSelect) {
+                // Carregar dados de subcategorias
+                const childrenDataEl = document.getElementById('interestChildrenData');
+                const countsDataEl = document.getElementById('interestCountsData');
+                self.interestChildren = childrenDataEl ? JSON.parse(childrenDataEl.textContent) : {};
+                self.interestCounts = countsDataEl ? JSON.parse(countsDataEl.textContent) : {};
+                
+                parentSelect.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    const termId = selectedOption.dataset.termId;
+                    const hasChildren = selectedOption.dataset.hasChildren === '1';
+                    const interest = this.value;
+                    
+                    // Mostrar/esconder select de subcategorias
+                    if (childSelect) {
+                        if (hasChildren && termId && self.interestChildren[termId]) {
+                            // Preencher subcategorias
+                            let options = '<option value="">Todas as subcategorias</option>';
+                            self.interestChildren[termId].forEach(child => {
+                                const count = self.interestCounts[child.term_id] || 0;
+                                options += `<option value="${child.slug}">${child.name} (${count})</option>`;
+                            });
+                            childSelect.innerHTML = options;
+                            childSelect.style.display = 'block';
+                            childSelect.value = '';
+                        } else {
+                            childSelect.style.display = 'none';
+                        }
+                    }
+                    
+                    // Filtrar leads
+                    self.filterLeadsByInterest(interest);
                 });
-            });
+                
+                // Evento do select de subcategorias
+                if (childSelect) {
+                    childSelect.addEventListener('change', function() {
+                        const interest = this.value || parentSelect.value;
+                        self.filterLeadsByInterest(interest);
+                    });
+                }
+            }
 
             // Busca de leads
             document.getElementById('searchLeads')?.addEventListener('input', function(e) {

@@ -362,26 +362,76 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
                     </div>
                 </div>
                 
-                <!-- Filtros de Interesse -->
+                <!-- Filtros de Interesse (Hierárquico) -->
+                <?php
+                // Organizar interesses por hierarquia
+                $parent_interests = [];
+                $child_interests = [];
+                $has_hierarchy = false;
+                
+                foreach ($interests as $interest) {
+                    if ($interest->parent == 0) {
+                        $parent_interests[] = $interest;
+                    } else {
+                        $has_hierarchy = true;
+                        if (!isset($child_interests[$interest->parent])) {
+                            $child_interests[$interest->parent] = [];
+                        }
+                        $child_interests[$interest->parent][] = $interest;
+                    }
+                }
+                
+                // Contar leads por interesse
+                function wec_count_leads_by_interest($term_id) {
+                    return count(get_posts([
+                        'post_type' => WEC_CPT::POST_TYPE,
+                        'posts_per_page' => -1,
+                        'fields' => 'ids',
+                        'tax_query' => [['taxonomy' => 'wec_interest', 'field' => 'term_id', 'terms' => $term_id]]
+                    ]));
+                }
+                ?>
                 <div class="leads-filters">
                     <div class="filter-label"><i class="fas fa-filter"></i> Filtrar por interesse:</div>
-                    <div class="filter-tags">
-                        <button class="filter-tag active" data-interest="all">
-                            Todos <span class="filter-count"><?php echo $total_leads; ?></span>
-                        </button>
-                        <?php foreach ($interests as $interest): 
-                            $count = get_posts([
-                                'post_type' => WEC_CPT::POST_TYPE,
-                                'posts_per_page' => -1,
-                                'fields' => 'ids',
-                                'tax_query' => [['taxonomy' => 'wec_interest', 'field' => 'term_id', 'terms' => $interest->term_id]]
-                            ]);
-                        ?>
-                            <button class="filter-tag" data-interest="<?php echo esc_attr($interest->slug); ?>">
-                                <?php echo esc_html($interest->name); ?> <span class="filter-count"><?php echo count($count); ?></span>
-                            </button>
-                        <?php endforeach; ?>
+                    <div class="filter-selects">
+                        <!-- Select Principal (Categorias) -->
+                        <select id="filterInterestParent" class="filter-select-interest">
+                            <option value="all">Todos os interesses (<?php echo $total_leads; ?>)</option>
+                            <?php foreach ($parent_interests as $parent): 
+                                $count = wec_count_leads_by_interest($parent->term_id);
+                                $has_children = isset($child_interests[$parent->term_id]);
+                            ?>
+                                <option value="<?php echo esc_attr($parent->slug); ?>" 
+                                        data-term-id="<?php echo $parent->term_id; ?>"
+                                        data-has-children="<?php echo $has_children ? '1' : '0'; ?>">
+                                    <?php echo esc_html($parent->name); ?> (<?php echo $count; ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        
+                        <?php if ($has_hierarchy): ?>
+                        <!-- Select Secundário (Subcategorias) - aparece dinamicamente -->
+                        <select id="filterInterestChild" class="filter-select-interest" style="display: none;">
+                            <option value="">Todas as subcategorias</option>
+                        </select>
+                        <?php endif; ?>
                     </div>
+                    
+                    <!-- Dados das subcategorias para JavaScript -->
+                    <script type="application/json" id="interestChildrenData">
+                    <?php echo json_encode($child_interests); ?>
+                    </script>
+                    
+                    <!-- Contagens para JavaScript -->
+                    <script type="application/json" id="interestCountsData">
+                    <?php 
+                    $counts = [];
+                    foreach ($interests as $int) {
+                        $counts[$int->term_id] = wec_count_leads_by_interest($int->term_id);
+                    }
+                    echo json_encode($counts);
+                    ?>
+                    </script>
                 </div>
                 
                 <div class="leads-table-wrapper">
