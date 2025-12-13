@@ -17,7 +17,7 @@ class WEC_Queue
     private static $instance = null;
     
     const TABLE_NAME = 'wec_dispatch_queue';
-    const BATCH_TABLE = 'wec_dispatch_batch';
+    const BATCH_TABLE = 'wec_dispatch_batches';
 
     public static function instance(): WEC_Queue
     {
