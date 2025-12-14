@@ -461,10 +461,37 @@ class WEC_Lead_Form_Widget extends Widget_Base
                 'default' => 'select',
                 'options' => [
                     'select' => __('Select (Dropdown)', 'whatsapp-evolution-clients'),
-                    'checkbox' => __('Checkboxes', 'whatsapp-evolution-clients'),
-                    'radio' => __('Radio Buttons', 'whatsapp-evolution-clients'),
+                    'tree' => __('Árvore (Tree View)', 'whatsapp-evolution-clients'),
                 ],
                 'condition' => ['show_categories' => 'yes'],
+            ]
+        );
+
+        $this->add_control(
+            'categories_required',
+            [
+                'label' => __('Obrigatório', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::SWITCHER,
+                'default' => '',
+                'condition' => ['show_categories' => 'yes'],
+            ]
+        );
+
+        $this->add_control(
+            'categories_required_level',
+            [
+                'label' => __('Nível Obrigatório', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::SELECT,
+                'default' => '1',
+                'options' => [
+                    '1' => __('Apenas 1º nível', 'whatsapp-evolution-clients'),
+                    '2' => __('Até 2º nível', 'whatsapp-evolution-clients'),
+                    '3' => __('Todos os níveis', 'whatsapp-evolution-clients'),
+                ],
+                'condition' => [
+                    'show_categories' => 'yes',
+                    'categories_required' => 'yes',
+                ],
             ]
         );
 
@@ -497,13 +524,57 @@ class WEC_Lead_Form_Widget extends Widget_Base
             [
                 'label' => __('Tipo de Exibição', 'whatsapp-evolution-clients'),
                 'type' => Controls_Manager::SELECT,
-                'default' => 'checkbox',
+                'default' => 'tree',
                 'options' => [
                     'select' => __('Select (Dropdown)', 'whatsapp-evolution-clients'),
-                    'checkbox' => __('Checkboxes', 'whatsapp-evolution-clients'),
-                    'radio' => __('Radio Buttons', 'whatsapp-evolution-clients'),
+                    'tree' => __('Árvore (Tree View)', 'whatsapp-evolution-clients'),
                 ],
                 'condition' => ['show_interests' => 'yes'],
+            ]
+        );
+
+        $this->add_control(
+            'interests_selection_mode',
+            [
+                'label' => __('Modo de Seleção', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::SELECT,
+                'default' => 'multiple',
+                'options' => [
+                    'single' => __('Única (Radio)', 'whatsapp-evolution-clients'),
+                    'multiple' => __('Múltipla (Checkbox)', 'whatsapp-evolution-clients'),
+                ],
+                'condition' => [
+                    'show_interests' => 'yes',
+                    'interests_type' => 'tree',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'interests_required',
+            [
+                'label' => __('Obrigatório', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::SWITCHER,
+                'default' => '',
+                'condition' => ['show_interests' => 'yes'],
+            ]
+        );
+
+        $this->add_control(
+            'interests_required_level',
+            [
+                'label' => __('Nível Obrigatório', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::SELECT,
+                'default' => '1',
+                'options' => [
+                    '1' => __('Apenas 1º nível', 'whatsapp-evolution-clients'),
+                    '2' => __('Até 2º nível', 'whatsapp-evolution-clients'),
+                    '3' => __('Todos os níveis', 'whatsapp-evolution-clients'),
+                ],
+                'condition' => [
+                    'show_interests' => 'yes',
+                    'interests_required' => 'yes',
+                ],
             ]
         );
 
@@ -1294,21 +1365,38 @@ class WEC_Lead_Form_Widget extends Widget_Base
             </div>
             <?php endif; ?>
 
-            <?php if ($settings['show_categories'] === 'yes' && !empty($categories) && !is_wp_error($categories)): ?>
-            <div class="wec-form-group">
+            <?php if ($settings['show_categories'] === 'yes' && !empty($categories) && !is_wp_error($categories)): 
+                $cat_required = $settings['categories_required'] === 'yes';
+                $cat_required_level = $settings['categories_required_level'] ?? '1';
+            ?>
+            <div class="wec-form-group wec-taxonomy-group" 
+                 data-required="<?php echo $cat_required ? 'true' : 'false'; ?>"
+                 data-required-level="<?php echo esc_attr($cat_required_level); ?>">
                 <label class="wec-form-label">
                     <?php echo esc_html($settings['categories_label']); ?>
+                    <?php if ($cat_required): ?>
+                        <span class="wec-form-required">*</span>
+                    <?php endif; ?>
                 </label>
-                <?php $this->render_taxonomy_field('categories', $categories, $settings['categories_type']); ?>
+                <?php $this->render_tree_taxonomy('categories', $categories, $settings['categories_type'], 'single'); ?>
             </div>
             <?php endif; ?>
 
-            <?php if ($settings['show_interests'] === 'yes' && !empty($interests) && !is_wp_error($interests)): ?>
-            <div class="wec-form-group wec-interests-hierarchical" data-type="<?php echo esc_attr($settings['interests_type']); ?>">
+            <?php if ($settings['show_interests'] === 'yes' && !empty($interests) && !is_wp_error($interests)): 
+                $int_required = $settings['interests_required'] === 'yes';
+                $int_required_level = $settings['interests_required_level'] ?? '1';
+                $int_selection_mode = $settings['interests_selection_mode'] ?? 'multiple';
+            ?>
+            <div class="wec-form-group wec-taxonomy-group" 
+                 data-required="<?php echo $int_required ? 'true' : 'false'; ?>"
+                 data-required-level="<?php echo esc_attr($int_required_level); ?>">
                 <label class="wec-form-label">
                     <?php echo esc_html($settings['interests_label']); ?>
+                    <?php if ($int_required): ?>
+                        <span class="wec-form-required">*</span>
+                    <?php endif; ?>
                 </label>
-                <?php $this->render_hierarchical_interests($interests, $settings['interests_type']); ?>
+                <?php $this->render_tree_taxonomy('interests', $interests, $settings['interests_type'], $int_selection_mode); ?>
             </div>
             <?php endif; ?>
 
@@ -1354,8 +1442,8 @@ class WEC_Lead_Form_Widget extends Widget_Base
         }
     }
 
-    // Renderiza interesses hierárquicos (até 3 níveis)
-    private function render_hierarchical_interests($terms, $type = 'select')
+    // Renderiza taxonomia em formato de árvore (tree view)
+    private function render_tree_taxonomy($name, $terms, $type, $selection_mode = 'single')
     {
         // Organizar por hierarquia
         $parents = [];
@@ -1372,7 +1460,106 @@ class WEC_Lead_Form_Widget extends Widget_Base
             }
         }
         
-        // Dados dos filhos em JSON para JavaScript (usado em todos os tipos)
+        $has_hierarchy = !empty($children);
+        $input_type = $selection_mode === 'single' ? 'radio' : 'checkbox';
+        
+        // Se for select, usar dropdown hierárquico
+        if ($type === 'select') {
+            $this->render_select_hierarchy($name, $parents, $children, $has_hierarchy);
+            return;
+        }
+        
+        // Tree View
+        echo '<div class="wec-tree-view" data-name="' . esc_attr($name) . '" data-mode="' . esc_attr($selection_mode) . '">';
+        echo '<input type="hidden" name="' . esc_attr($name) . '_selected" class="wec-tree-selected" value="">';
+        
+        echo '<ul class="wec-tree-list wec-tree-level-1">';
+        foreach ($parents as $term) {
+            $has_child = isset($children[$term->term_id]);
+            echo '<li class="wec-tree-item' . ($has_child ? ' has-children' : '') . '" data-id="' . esc_attr($term->term_id) . '">';
+            echo '<div class="wec-tree-node">';
+            if ($has_child) {
+                echo '<span class="wec-tree-toggle"><i class="fas fa-chevron-right"></i></span>';
+            }
+            echo '<label class="wec-tree-label">';
+            echo '<input type="' . $input_type . '" name="' . esc_attr($name) . '[]" value="' . esc_attr($term->term_id) . '" data-level="1">';
+            echo '<span class="wec-tree-text">' . esc_html($term->name) . '</span>';
+            echo '</label>';
+            echo '</div>';
+            
+            // Filhos
+            if ($has_child) {
+                echo '<ul class="wec-tree-list wec-tree-level-2" style="display:none;">';
+                foreach ($children[$term->term_id] as $child) {
+                    $has_grandchild = isset($children[$child->term_id]);
+                    echo '<li class="wec-tree-item' . ($has_grandchild ? ' has-children' : '') . '" data-id="' . esc_attr($child->term_id) . '">';
+                    echo '<div class="wec-tree-node">';
+                    if ($has_grandchild) {
+                        echo '<span class="wec-tree-toggle"><i class="fas fa-chevron-right"></i></span>';
+                    }
+                    echo '<label class="wec-tree-label">';
+                    echo '<input type="' . $input_type . '" name="' . esc_attr($name) . '[]" value="' . esc_attr($child->term_id) . '" data-level="2">';
+                    echo '<span class="wec-tree-text">' . esc_html($child->name) . '</span>';
+                    echo '</label>';
+                    echo '</div>';
+                    
+                    // Netos
+                    if ($has_grandchild) {
+                        echo '<ul class="wec-tree-list wec-tree-level-3" style="display:none;">';
+                        foreach ($children[$child->term_id] as $grandchild) {
+                            echo '<li class="wec-tree-item" data-id="' . esc_attr($grandchild->term_id) . '">';
+                            echo '<div class="wec-tree-node">';
+                            echo '<label class="wec-tree-label">';
+                            echo '<input type="' . $input_type . '" name="' . esc_attr($name) . '[]" value="' . esc_attr($grandchild->term_id) . '" data-level="3">';
+                            echo '<span class="wec-tree-text">' . esc_html($grandchild->name) . '</span>';
+                            echo '</label>';
+                            echo '</div>';
+                            echo '</li>';
+                        }
+                        echo '</ul>';
+                    }
+                    echo '</li>';
+                }
+                echo '</ul>';
+            }
+            echo '</li>';
+        }
+        echo '</ul>';
+        echo '</div>';
+    }
+
+    // Renderiza select hierárquico
+    private function render_select_hierarchy($name, $parents, $children, $has_hierarchy)
+    {
+        if (!$has_hierarchy) {
+            echo '<select name="' . esc_attr($name) . '[]" class="wec-form-select">';
+            echo '<option value="">' . __('Selecione...', 'whatsapp-evolution-clients') . '</option>';
+            foreach ($parents as $term) {
+                echo '<option value="' . esc_attr($term->term_id) . '">' . esc_html($term->name) . '</option>';
+            }
+            echo '</select>';
+            return;
+        }
+        
+        echo '<div class="wec-hierarchical-selects">';
+        
+        echo '<select name="' . esc_attr($name) . '[]" class="wec-form-select wec-select-level" data-level="1">';
+        echo '<option value="">' . __('Selecione...', 'whatsapp-evolution-clients') . '</option>';
+        foreach ($parents as $term) {
+            $has_child = isset($children[$term->term_id]);
+            echo '<option value="' . esc_attr($term->term_id) . '" data-has-children="' . ($has_child ? '1' : '0') . '">' . esc_html($term->name) . '</option>';
+        }
+        echo '</select>';
+        
+        echo '<select name="' . esc_attr($name) . '[]" class="wec-form-select wec-select-level" data-level="2" style="display:none;">';
+        echo '<option value="">' . __('Selecione subcategoria...', 'whatsapp-evolution-clients') . '</option>';
+        echo '</select>';
+        
+        echo '<select name="' . esc_attr($name) . '[]" class="wec-form-select wec-select-level" data-level="3" style="display:none;">';
+        echo '<option value="">' . __('Selecione opção...', 'whatsapp-evolution-clients') . '</option>';
+        echo '</select>';
+        
+        // Dados em JSON
         $children_data = [];
         foreach ($children as $parent_id => $child_terms) {
             $children_data[$parent_id] = [];
@@ -1398,21 +1585,8 @@ class WEC_Lead_Form_Widget extends Widget_Base
             }
         }
         
-        $has_hierarchy = !empty($children);
-        
-        // Renderizar baseado no tipo
-        if ($type === 'select') {
-            $this->render_interests_select($parents, $children, $has_hierarchy);
-        } elseif ($type === 'radio') {
-            $this->render_interests_radio_checkbox($parents, $children, $has_hierarchy, 'radio');
-        } else {
-            $this->render_interests_radio_checkbox($parents, $children, $has_hierarchy, 'checkbox');
-        }
-        
-        // JSON data para hierarquia dinâmica
-        if ($has_hierarchy) {
-            echo '<script type="application/json" class="wec-interests-children-data">' . json_encode($children_data) . '</script>';
-        }
+        echo '<script type="application/json" class="wec-select-children-data">' . json_encode($children_data) . '</script>';
+        echo '</div>';
     }
 
     // Renderiza interesses em formato select

@@ -631,3 +631,108 @@
         min-height: 200px;
     }
 }
+
+/* Tree View */
+.wec-tree-view {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.wec-tree-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.wec-tree-level-1 > .wec-tree-item {
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.wec-tree-level-1 > .wec-tree-item:last-child {
+    border-bottom: none;
+}
+
+.wec-tree-level-2,
+.wec-tree-level-3 {
+    background: #f9fafb;
+    border-left: 3px solid #25D366;
+    margin-left: 20px;
+}
+
+.wec-tree-node {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.wec-tree-node:hover {
+    background: #f3f4f6;
+}
+
+.wec-tree-toggle {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.wec-tree-toggle i {
+    font-size: 10px;
+}
+
+.wec-tree-item.expanded > .wec-tree-node .wec-tree-toggle {
+    transform: rotate(90deg);
+}
+
+.wec-tree-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.wec-tree-label input[type="checkbox"],
+.wec-tree-label input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: #25D366;
+    cursor: pointer;
+}
+
+.wec-tree-text {
+    font-size: 14px;
+    color: #374151;
+}
+
+.wec-tree-label input:checked + .wec-tree-text {
+    color: #25D366;
+    font-weight: 500;
+}
+
+/* Animação de expansão */
+.wec-tree-level-2,
+.wec-tree-level-3 {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+/* Validação */
+.wec-taxonomy-group.error .wec-tree-view {
+    border-color: #dc3545;
+}
+
+.wec-taxonomy-group.error .wec-form-select {
+    border-color: #dc3545;
+}

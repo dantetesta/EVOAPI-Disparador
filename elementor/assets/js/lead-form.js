@@ -35,6 +35,9 @@
             // Inicializar selects hierárquicos
             initHierarchicalSelects($form);
 
+            // Inicializar tree views
+            initTreeViews($form);
+
             // Inicializar cropper de foto
             initPhotoCropper($form);
 
@@ -100,6 +103,44 @@
                         $emailField.after('<span class="wec-field-error">E-mail inválido.</span>');
                     }
                 }
+
+                // Validar campos de taxonomia obrigatórios
+                $form.find('.wec-taxonomy-group[data-required="true"]').each(function() {
+                    var $group = $(this);
+                    var requiredLevel = parseInt($group.data('required-level')) || 1;
+                    var hasSelection = false;
+                    
+                    // Verificar tree view
+                    var $tree = $group.find('.wec-tree-view');
+                    if ($tree.length) {
+                        var $checked = $tree.find('input:checked');
+                        if ($checked.length > 0) {
+                            var level = parseInt($checked.first().data('level')) || 1;
+                            hasSelection = level >= requiredLevel || requiredLevel === 1;
+                        }
+                    }
+                    
+                    // Verificar selects
+                    var $selects = $group.find('.wec-form-select, .wec-select-level');
+                    if ($selects.length && !$tree.length) {
+                        $selects.each(function(index) {
+                            if (index < requiredLevel && $(this).val()) {
+                                hasSelection = true;
+                            }
+                        });
+                        if (requiredLevel === 1 && $selects.first().val()) {
+                            hasSelection = true;
+                        }
+                    }
+                    
+                    if (!hasSelection) {
+                        isValid = false;
+                        $group.addClass('error');
+                        if (!$group.find('.wec-field-error').length) {
+                            $group.append('<span class="wec-field-error">Este campo é obrigatório.</span>');
+                        }
+                    }
+                });
 
                 if (!isValid) {
                     return false;
@@ -314,6 +355,38 @@
             
             updateCollector();
         });
+    }
+
+    // Inicializar tree views
+    function initTreeViews($form) {
+        $form.find('.wec-tree-view').each(function() {
+            var $tree = $(this);
+            
+            // Toggle expansão ao clicar no toggle ou no node
+            $tree.find('.wec-tree-toggle').on('click', function(e) {
+                e.stopPropagation();
+                var $item = $(this).closest('.wec-tree-item');
+                toggleTreeItem($item);
+            });
+            
+            // Expandir ao selecionar um item com filhos
+            $tree.find('.wec-tree-label input').on('change', function() {
+                var $item = $(this).closest('.wec-tree-item');
+                if ($item.hasClass('has-children') && $(this).is(':checked')) {
+                    if (!$item.hasClass('expanded')) {
+                        toggleTreeItem($item);
+                    }
+                }
+            });
+        });
+    }
+    
+    function toggleTreeItem($item) {
+        var $sublist = $item.children('.wec-tree-list');
+        if ($sublist.length) {
+            $item.toggleClass('expanded');
+            $sublist.slideToggle(200);
+        }
     }
 
     // Inicializar cropper de foto
