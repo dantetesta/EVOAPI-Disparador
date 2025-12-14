@@ -95,12 +95,13 @@ class WEC_Settings
     }
 
     /**
-     * Redireciona para o dashboard de disparo
+     * Redireciona para o dashboard de disparo via JavaScript
      */
     public function redirect_to_dashboard(): void
     {
-        wp_redirect(WEC_PLUGIN_URL . 'dashboard/');
-        exit;
+        $url = WEC_PLUGIN_URL . 'dashboard/';
+        echo '<script>window.location.href = "' . esc_url($url) . '";</script>';
+        echo '<p>Redirecionando para o <a href="' . esc_url($url) . '">Painel de Disparo</a>...</p>';
     }
 
     /**
