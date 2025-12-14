@@ -291,7 +291,7 @@
     }
 }
 
-/* Selects Hierárquicos */
+/* Hierarquia - Selects */
 .wec-hierarchical-selects {
     display: flex;
     flex-direction: column;
@@ -300,6 +300,34 @@
 
 .wec-hierarchical-selects .wec-form-select {
     width: 100%;
+}
+
+/* Hierarquia - Radio e Checkbox */
+.wec-hierarchical-radio,
+.wec-hierarchical-checkbox {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.wec-interest-level-group {
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.wec-interest-level-group[data-level="2"],
+.wec-interest-level-group[data-level="3"] {
+    margin-left: 20px;
+    border-left: 3px solid #25D366;
+}
+
+.wec-interest-level-group .wec-form-radio-group,
+.wec-interest-level-group .wec-form-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 /* Modal de Sucesso */

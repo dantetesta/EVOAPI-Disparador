@@ -158,9 +158,6 @@
 
     // Inicializar selects hierárquicos
     function initHierarchicalSelects($form) {
-        var $container = $form.find('.wec-hierarchical-selects');
-        if (!$container.length) return;
-        
         var $dataScript = $form.find('.wec-interests-children-data');
         if (!$dataScript.length) return;
         
@@ -172,15 +169,32 @@
             return;
         }
         
+        // Detectar tipo de renderização
+        var $selectContainer = $form.find('.wec-hierarchical-selects');
+        var $radioContainer = $form.find('.wec-hierarchical-radio');
+        var $checkboxContainer = $form.find('.wec-hierarchical-checkbox');
+        
+        if ($selectContainer.length) {
+            initSelectHierarchy($selectContainer, childrenData);
+        }
+        
+        if ($radioContainer.length) {
+            initRadioCheckboxHierarchy($radioContainer, childrenData, 'radio');
+        }
+        
+        if ($checkboxContainer.length) {
+            initRadioCheckboxHierarchy($checkboxContainer, childrenData, 'checkbox');
+        }
+    }
+    
+    // Hierarquia para SELECT
+    function initSelectHierarchy($container, childrenData) {
         var $level1 = $container.find('[data-level="1"]');
         var $level2 = $container.find('[data-level="2"]');
         var $level3 = $container.find('[data-level="3"]');
         
-        // Nível 1 change
         $level1.on('change', function() {
             var parentId = $(this).val();
-            
-            // Reset níveis 2 e 3
             $level2.hide().find('option:not(:first)').remove();
             $level3.hide().find('option:not(:first)').remove();
             
@@ -195,11 +209,8 @@
             }
         });
         
-        // Nível 2 change
         $level2.on('change', function() {
             var parentId = $(this).val();
-            
-            // Reset nível 3
             $level3.hide().find('option:not(:first)').remove();
             
             if (!parentId) return;
@@ -211,6 +222,94 @@
                 });
                 $level3.show();
             }
+        });
+    }
+    
+    // Hierarquia para RADIO e CHECKBOX
+    function initRadioCheckboxHierarchy($container, childrenData, inputType) {
+        var $level1Group = $container.find('[data-level="1"]');
+        var $level2Group = $container.find('[data-level="2"]');
+        var $level3Group = $container.find('[data-level="3"]');
+        var $collector = $container.find('.wec-interests-collector');
+        
+        // Função para atualizar campo hidden com valores selecionados
+        function updateCollector() {
+            var values = [];
+            $container.find('input:checked').each(function() {
+                values.push($(this).val());
+            });
+            $collector.val(values.join(','));
+        }
+        
+        // Nível 1 change
+        $level1Group.find('input').on('change', function() {
+            var $input = $(this);
+            var parentId = $input.val();
+            var hasChildren = $input.data('has-children') == 1;
+            
+            // Reset níveis 2 e 3
+            $level2Group.hide().find('.wec-interest-children').empty();
+            $level3Group.hide().find('.wec-interest-grandchildren').empty();
+            
+            if (!$input.is(':checked') || !hasChildren) {
+                updateCollector();
+                return;
+            }
+            
+            var children = childrenData[parentId];
+            if (children && children.length > 0) {
+                var $childContainer = $level2Group.find('.wec-interest-children');
+                children.forEach(function(child) {
+                    var html = '<label class="wec-form-' + inputType + '-label">' +
+                        '<input type="' + inputType + '" name="interests_level2[]" value="' + child.id + '" data-has-children="' + (child.has_children ? '1' : '0') + '" class="wec-interest-input" data-level="2">' +
+                        '<span>' + child.name + '</span>' +
+                    '</label>';
+                    $childContainer.append(html);
+                });
+                
+                // Bind eventos nos novos inputs
+                bindLevel2Events($level2Group, $level3Group, childrenData, inputType, updateCollector);
+                $level2Group.show();
+            }
+            
+            updateCollector();
+        });
+        
+        updateCollector();
+    }
+    
+    // Bind eventos do nível 2
+    function bindLevel2Events($level2Group, $level3Group, childrenData, inputType, updateCollector) {
+        $level2Group.find('input').off('change').on('change', function() {
+            var $input = $(this);
+            var parentId = $input.val();
+            var hasChildren = $input.data('has-children') == 1;
+            
+            // Reset nível 3
+            $level3Group.hide().find('.wec-interest-grandchildren').empty();
+            
+            if (!$input.is(':checked') || !hasChildren) {
+                updateCollector();
+                return;
+            }
+            
+            var children = childrenData[parentId];
+            if (children && children.length > 0) {
+                var $grandchildContainer = $level3Group.find('.wec-interest-grandchildren');
+                children.forEach(function(child) {
+                    var html = '<label class="wec-form-' + inputType + '-label">' +
+                        '<input type="' + inputType + '" name="interests_level3[]" value="' + child.id + '" class="wec-interest-input" data-level="3">' +
+                        '<span>' + child.name + '</span>' +
+                    '</label>';
+                    $grandchildContainer.append(html);
+                });
+                
+                // Bind change no nível 3
+                $level3Group.find('input').off('change').on('change', updateCollector);
+                $level3Group.show();
+            }
+            
+            updateCollector();
         });
     }
 

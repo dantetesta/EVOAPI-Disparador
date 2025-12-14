@@ -1093,11 +1093,11 @@ class WEC_Lead_Form_Widget extends Widget_Base
             <?php endif; ?>
 
             <?php if ($settings['show_interests'] === 'yes' && !empty($interests) && !is_wp_error($interests)): ?>
-            <div class="wec-form-group wec-interests-hierarchical">
+            <div class="wec-form-group wec-interests-hierarchical" data-type="<?php echo esc_attr($settings['interests_type']); ?>">
                 <label class="wec-form-label">
                     <?php echo esc_html($settings['interests_label']); ?>
                 </label>
-                <?php $this->render_hierarchical_interests($interests); ?>
+                <?php $this->render_hierarchical_interests($interests, $settings['interests_type']); ?>
             </div>
             <?php endif; ?>
 
@@ -1144,7 +1144,7 @@ class WEC_Lead_Form_Widget extends Widget_Base
     }
 
     // Renderiza interesses hierárquicos (até 3 níveis)
-    private function render_hierarchical_interests($terms)
+    private function render_hierarchical_interests($terms, $type = 'select')
     {
         // Organizar por hierarquia
         $parents = [];
@@ -1161,42 +1161,7 @@ class WEC_Lead_Form_Widget extends Widget_Base
             }
         }
         
-        // Se não há hierarquia, mostrar select simples
-        if (empty($children)) {
-            echo '<select name="interests[]" class="wec-form-select">';
-            echo '<option value="">' . __('Selecione...', 'whatsapp-evolution-clients') . '</option>';
-            foreach ($parents as $term) {
-                echo '<option value="' . esc_attr($term->term_id) . '">' . esc_html($term->name) . '</option>';
-            }
-            echo '</select>';
-            return;
-        }
-        
-        // Container para selects hierárquicos
-        echo '<div class="wec-hierarchical-selects">';
-        
-        // Nível 1 (pais)
-        echo '<select name="interests[]" class="wec-form-select wec-interest-level" data-level="1">';
-        echo '<option value="">' . __('Selecione...', 'whatsapp-evolution-clients') . '</option>';
-        foreach ($parents as $term) {
-            $has_children = isset($children[$term->term_id]);
-            echo '<option value="' . esc_attr($term->term_id) . '" data-has-children="' . ($has_children ? '1' : '0') . '">' . esc_html($term->name) . '</option>';
-        }
-        echo '</select>';
-        
-        // Nível 2 (filhos) - inicialmente oculto
-        echo '<select name="interests[]" class="wec-form-select wec-interest-level" data-level="2" style="display:none;">';
-        echo '<option value="">' . __('Selecione subcategoria...', 'whatsapp-evolution-clients') . '</option>';
-        echo '</select>';
-        
-        // Nível 3 (netos) - inicialmente oculto
-        echo '<select name="interests[]" class="wec-form-select wec-interest-level" data-level="3" style="display:none;">';
-        echo '<option value="">' . __('Selecione opção...', 'whatsapp-evolution-clients') . '</option>';
-        echo '</select>';
-        
-        echo '</div>';
-        
-        // Dados dos filhos em JSON para JavaScript
+        // Dados dos filhos em JSON para JavaScript (usado em todos os tipos)
         $children_data = [];
         foreach ($children as $parent_id => $child_terms) {
             $children_data[$parent_id] = [];
@@ -1207,7 +1172,6 @@ class WEC_Lead_Form_Widget extends Widget_Base
                     'name' => $child->name,
                     'has_children' => $has_grandchildren,
                 ];
-                // Adicionar netos se existirem
                 if ($has_grandchildren) {
                     foreach ($children[$child->term_id] as $grandchild) {
                         if (!isset($children_data[$child->term_id])) {
@@ -1223,6 +1187,94 @@ class WEC_Lead_Form_Widget extends Widget_Base
             }
         }
         
-        echo '<script type="application/json" class="wec-interests-children-data">' . json_encode($children_data) . '</script>';
+        $has_hierarchy = !empty($children);
+        
+        // Renderizar baseado no tipo
+        if ($type === 'select') {
+            $this->render_interests_select($parents, $children, $has_hierarchy);
+        } elseif ($type === 'radio') {
+            $this->render_interests_radio_checkbox($parents, $children, $has_hierarchy, 'radio');
+        } else {
+            $this->render_interests_radio_checkbox($parents, $children, $has_hierarchy, 'checkbox');
+        }
+        
+        // JSON data para hierarquia dinâmica
+        if ($has_hierarchy) {
+            echo '<script type="application/json" class="wec-interests-children-data">' . json_encode($children_data) . '</script>';
+        }
+    }
+
+    // Renderiza interesses em formato select
+    private function render_interests_select($parents, $children, $has_hierarchy)
+    {
+        if (!$has_hierarchy) {
+            echo '<select name="interests[]" class="wec-form-select">';
+            echo '<option value="">' . __('Selecione...', 'whatsapp-evolution-clients') . '</option>';
+            foreach ($parents as $term) {
+                echo '<option value="' . esc_attr($term->term_id) . '">' . esc_html($term->name) . '</option>';
+            }
+            echo '</select>';
+            return;
+        }
+        
+        echo '<div class="wec-hierarchical-selects">';
+        
+        // Nível 1
+        echo '<select name="interests[]" class="wec-form-select wec-interest-level" data-level="1">';
+        echo '<option value="">' . __('Selecione...', 'whatsapp-evolution-clients') . '</option>';
+        foreach ($parents as $term) {
+            $has_children = isset($children[$term->term_id]);
+            echo '<option value="' . esc_attr($term->term_id) . '" data-has-children="' . ($has_children ? '1' : '0') . '">' . esc_html($term->name) . '</option>';
+        }
+        echo '</select>';
+        
+        // Níveis 2 e 3 (ocultos)
+        echo '<select name="interests[]" class="wec-form-select wec-interest-level" data-level="2" style="display:none;">';
+        echo '<option value="">' . __('Selecione subcategoria...', 'whatsapp-evolution-clients') . '</option>';
+        echo '</select>';
+        
+        echo '<select name="interests[]" class="wec-form-select wec-interest-level" data-level="3" style="display:none;">';
+        echo '<option value="">' . __('Selecione opção...', 'whatsapp-evolution-clients') . '</option>';
+        echo '</select>';
+        
+        echo '</div>';
+    }
+
+    // Renderiza interesses em formato radio ou checkbox
+    private function render_interests_radio_checkbox($parents, $children, $has_hierarchy, $input_type)
+    {
+        $type_class = $input_type === 'radio' ? 'radio' : 'checkbox';
+        
+        echo '<div class="wec-hierarchical-' . $type_class . '">';
+        
+        // Nível 1 (pais)
+        echo '<div class="wec-interest-level-group" data-level="1">';
+        echo '<div class="wec-form-' . $type_class . '-group">';
+        foreach ($parents as $term) {
+            $has_child = isset($children[$term->term_id]);
+            echo '<label class="wec-form-' . $type_class . '-label">';
+            echo '<input type="' . $input_type . '" name="interests_level1[]" value="' . esc_attr($term->term_id) . '" data-has-children="' . ($has_child ? '1' : '0') . '" class="wec-interest-input" data-level="1">';
+            echo '<span>' . esc_html($term->name) . '</span>';
+            echo '</label>';
+        }
+        echo '</div>';
+        echo '</div>';
+        
+        if ($has_hierarchy) {
+            // Nível 2 (filhos) - inicialmente oculto
+            echo '<div class="wec-interest-level-group" data-level="2" style="display:none;">';
+            echo '<div class="wec-form-' . $type_class . '-group wec-interest-children"></div>';
+            echo '</div>';
+            
+            // Nível 3 (netos) - inicialmente oculto
+            echo '<div class="wec-interest-level-group" data-level="3" style="display:none;">';
+            echo '<div class="wec-form-' . $type_class . '-group wec-interest-grandchildren"></div>';
+            echo '</div>';
+        }
+        
+        // Campo oculto para coletar interesses selecionados
+        echo '<input type="hidden" name="interests[]" class="wec-interests-collector" value="">';
+        
+        echo '</div>';
     }
 }
