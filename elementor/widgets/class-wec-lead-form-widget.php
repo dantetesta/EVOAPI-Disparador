@@ -292,6 +292,110 @@ class WEC_Lead_Form_Widget extends Widget_Base
         );
 
         $this->add_control(
+            'photo_enable_cropper',
+            [
+                'label' => __('Habilitar Cropper', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Permite recortar a imagem antes do upload', 'whatsapp-evolution-clients'),
+                'condition' => ['show_photo' => 'yes'],
+            ]
+        );
+
+        $this->add_control(
+            'photo_aspect_ratio',
+            [
+                'label' => __('Proporção do Crop', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::SELECT,
+                'default' => '1:1',
+                'options' => [
+                    '1:1' => __('1:1 (Quadrado)', 'whatsapp-evolution-clients'),
+                    '4:3' => __('4:3 (Paisagem)', 'whatsapp-evolution-clients'),
+                    '3:4' => __('3:4 (Retrato)', 'whatsapp-evolution-clients'),
+                    '16:9' => __('16:9 (Widescreen)', 'whatsapp-evolution-clients'),
+                    '9:16' => __('9:16 (Stories)', 'whatsapp-evolution-clients'),
+                    '3:2' => __('3:2 (Foto)', 'whatsapp-evolution-clients'),
+                    '2:3' => __('2:3 (Retrato Foto)', 'whatsapp-evolution-clients'),
+                    'free' => __('Livre (Sem proporção)', 'whatsapp-evolution-clients'),
+                    'custom' => __('Personalizado', 'whatsapp-evolution-clients'),
+                ],
+                'condition' => [
+                    'show_photo' => 'yes',
+                    'photo_enable_cropper' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'photo_aspect_custom_width',
+            [
+                'label' => __('Proporção - Largura', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::NUMBER,
+                'default' => 1,
+                'min' => 1,
+                'max' => 100,
+                'condition' => [
+                    'show_photo' => 'yes',
+                    'photo_enable_cropper' => 'yes',
+                    'photo_aspect_ratio' => 'custom',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'photo_aspect_custom_height',
+            [
+                'label' => __('Proporção - Altura', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::NUMBER,
+                'default' => 1,
+                'min' => 1,
+                'max' => 100,
+                'condition' => [
+                    'show_photo' => 'yes',
+                    'photo_enable_cropper' => 'yes',
+                    'photo_aspect_ratio' => 'custom',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'photo_output_width',
+            [
+                'label' => __('Largura Final (px)', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::NUMBER,
+                'default' => 400,
+                'min' => 50,
+                'max' => 2000,
+                'description' => __('Largura da imagem após o crop', 'whatsapp-evolution-clients'),
+                'condition' => [
+                    'show_photo' => 'yes',
+                    'photo_enable_cropper' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'photo_output_quality',
+            [
+                'label' => __('Qualidade (%)', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::SLIDER,
+                'default' => ['size' => 85],
+                'range' => [
+                    'px' => [
+                        'min' => 10,
+                        'max' => 100,
+                        'step' => 5,
+                    ],
+                ],
+                'description' => __('Qualidade da compressão JPEG', 'whatsapp-evolution-clients'),
+                'condition' => [
+                    'show_photo' => 'yes',
+                    'photo_enable_cropper' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
             'divider_description',
             ['type' => Controls_Manager::DIVIDER]
         );
@@ -1146,15 +1250,35 @@ class WEC_Lead_Form_Widget extends Widget_Base
             </div>
             <?php endif; ?>
 
-            <?php if ($settings['show_photo'] === 'yes'): ?>
-            <div class="wec-form-group">
+            <?php if ($settings['show_photo'] === 'yes'): 
+                $enable_cropper = $settings['photo_enable_cropper'] === 'yes';
+                $aspect_ratio = $settings['photo_aspect_ratio'] ?? '1:1';
+                $custom_w = $settings['photo_aspect_custom_width'] ?? 1;
+                $custom_h = $settings['photo_aspect_custom_height'] ?? 1;
+                $output_width = $settings['photo_output_width'] ?? 400;
+                $output_quality = isset($settings['photo_output_quality']['size']) ? $settings['photo_output_quality']['size'] / 100 : 0.85;
+            ?>
+            <div class="wec-form-group wec-photo-group" 
+                 data-cropper="<?php echo $enable_cropper ? 'true' : 'false'; ?>"
+                 data-aspect="<?php echo esc_attr($aspect_ratio); ?>"
+                 data-custom-w="<?php echo esc_attr($custom_w); ?>"
+                 data-custom-h="<?php echo esc_attr($custom_h); ?>"
+                 data-output-width="<?php echo esc_attr($output_width); ?>"
+                 data-output-quality="<?php echo esc_attr($output_quality); ?>">
                 <label class="wec-form-label">
                     <?php echo esc_html($settings['photo_label']); ?>
                 </label>
-                <input type="file" 
-                       name="photo" 
-                       class="wec-form-input wec-form-file" 
-                       accept="image/*">
+                <div class="wec-photo-upload-area">
+                    <input type="file" 
+                           name="photo_original" 
+                           class="wec-form-input wec-form-file wec-photo-input" 
+                           accept="image/*">
+                    <input type="hidden" name="photo_cropped" class="wec-photo-cropped">
+                    <div class="wec-photo-preview" style="display:none;">
+                        <img src="" alt="Preview">
+                        <button type="button" class="wec-photo-change"><?php _e('Trocar', 'whatsapp-evolution-clients'); ?></button>
+                    </div>
+                </div>
             </div>
             <?php endif; ?>
 

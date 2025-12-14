@@ -451,3 +451,183 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
 }
+
+/* Photo Cropper */
+.wec-photo-upload-area {
+    position: relative;
+}
+
+.wec-photo-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.wec-photo-preview img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #25D366;
+}
+
+.wec-photo-change {
+    padding: 8px 16px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wec-photo-change:hover {
+    background: #e5e7eb;
+}
+
+/* Modal Cropper */
+.wec-cropper-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.wec-cropper-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.wec-cropper-modal {
+    background: white;
+    border-radius: 16px;
+    max-width: 90vw;
+    max-height: 90vh;
+    width: 600px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.wec-cropper-overlay.active .wec-cropper-modal {
+    transform: scale(1);
+}
+
+.wec-cropper-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.wec-cropper-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.wec-cropper-body {
+    flex: 1;
+    min-height: 300px;
+    max-height: 50vh;
+    overflow: hidden;
+    background: #1f2937;
+}
+
+.wec-cropper-image {
+    display: block;
+    max-width: 100%;
+}
+
+.wec-cropper-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+}
+
+.wec-cropper-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wec-cropper-btn:hover {
+    background: #25D366;
+    color: white;
+    border-color: #25D366;
+}
+
+.wec-cropper-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.wec-cropper-cancel {
+    padding: 10px 20px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wec-cropper-cancel:hover {
+    background: #e5e7eb;
+}
+
+.wec-cropper-confirm {
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wec-cropper-confirm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+}
+
+@media (max-width: 640px) {
+    .wec-cropper-modal {
+        width: 95vw;
+        max-height: 95vh;
+    }
+    
+    .wec-cropper-body {
+        min-height: 200px;
+    }
+}

@@ -35,6 +35,9 @@
             // Inicializar selects hierárquicos
             initHierarchicalSelects($form);
 
+            // Inicializar cropper de foto
+            initPhotoCropper($form);
+
             // Máscara de telefone
             var $phoneInputs = $form.find('.wec-phone-input');
             $phoneInputs.each(function() {
@@ -311,6 +314,164 @@
             
             updateCollector();
         });
+    }
+
+    // Inicializar cropper de foto
+    function initPhotoCropper($form) {
+        var $photoGroup = $form.find('.wec-photo-group');
+        if (!$photoGroup.length) return;
+        
+        var enableCropper = $photoGroup.data('cropper') === true || $photoGroup.data('cropper') === 'true';
+        if (!enableCropper) return;
+        
+        var aspectRatio = $photoGroup.data('aspect') || '1:1';
+        var customW = parseFloat($photoGroup.data('custom-w')) || 1;
+        var customH = parseFloat($photoGroup.data('custom-h')) || 1;
+        var outputWidth = parseInt($photoGroup.data('output-width')) || 400;
+        var outputQuality = parseFloat($photoGroup.data('output-quality')) || 0.85;
+        
+        // Calcular aspect ratio numérico
+        var numericAspect = getNumericAspect(aspectRatio, customW, customH);
+        
+        var $fileInput = $photoGroup.find('.wec-photo-input');
+        var $croppedInput = $photoGroup.find('.wec-photo-cropped');
+        var $preview = $photoGroup.find('.wec-photo-preview');
+        var $previewImg = $preview.find('img');
+        var $changeBtn = $photoGroup.find('.wec-photo-change');
+        
+        // Evento de seleção de arquivo
+        $fileInput.on('change', function(e) {
+            var file = e.target.files[0];
+            if (!file || !file.type.match('image.*')) return;
+            
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                openCropperModal(event.target.result, numericAspect, outputWidth, outputQuality, function(croppedData) {
+                    $croppedInput.val(croppedData);
+                    $previewImg.attr('src', croppedData);
+                    $preview.show();
+                    $fileInput.hide();
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        // Botão trocar foto
+        $changeBtn.on('click', function() {
+            $croppedInput.val('');
+            $preview.hide();
+            $fileInput.val('').show();
+        });
+    }
+    
+    // Calcular aspect ratio numérico
+    function getNumericAspect(ratio, customW, customH) {
+        if (ratio === 'free') return NaN;
+        if (ratio === 'custom') return customW / customH;
+        
+        var parts = ratio.split(':');
+        if (parts.length === 2) {
+            return parseFloat(parts[0]) / parseFloat(parts[1]);
+        }
+        return 1;
+    }
+    
+    // Modal do cropper
+    function openCropperModal(imageSrc, aspectRatio, outputWidth, quality, callback) {
+        var texts = WEC_FORM.cropperTexts || {};
+        
+        var modalHtml = '<div class="wec-cropper-overlay">' +
+            '<div class="wec-cropper-modal">' +
+                '<div class="wec-cropper-header">' +
+                    '<h3>' + (texts.title || 'Recortar Imagem') + '</h3>' +
+                '</div>' +
+                '<div class="wec-cropper-body">' +
+                    '<img src="' + imageSrc + '" class="wec-cropper-image">' +
+                '</div>' +
+                '<div class="wec-cropper-controls">' +
+                    '<button type="button" class="wec-cropper-btn wec-cropper-rotate" title="' + (texts.rotate || 'Girar') + '">' +
+                        '<i class="fas fa-redo"></i>' +
+                    '</button>' +
+                    '<button type="button" class="wec-cropper-btn wec-cropper-zoom-in" title="' + (texts.zoom || 'Zoom') + ' +">' +
+                        '<i class="fas fa-search-plus"></i>' +
+                    '</button>' +
+                    '<button type="button" class="wec-cropper-btn wec-cropper-zoom-out" title="' + (texts.zoom || 'Zoom') + ' -">' +
+                        '<i class="fas fa-search-minus"></i>' +
+                    '</button>' +
+                '</div>' +
+                '<div class="wec-cropper-footer">' +
+                    '<button type="button" class="wec-cropper-cancel">' + (texts.cancel || 'Cancelar') + '</button>' +
+                    '<button type="button" class="wec-cropper-confirm">' + (texts.confirm || 'Confirmar') + '</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+        
+        $('body').append(modalHtml);
+        
+        var $overlay = $('.wec-cropper-overlay');
+        var $image = $overlay.find('.wec-cropper-image');
+        var cropper = null;
+        
+        // Inicializar Cropper.js
+        setTimeout(function() {
+            $overlay.addClass('active');
+            
+            cropper = new Cropper($image[0], {
+                aspectRatio: aspectRatio,
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 0.9,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+            });
+        }, 50);
+        
+        // Controles
+        $overlay.find('.wec-cropper-rotate').on('click', function() {
+            if (cropper) cropper.rotate(90);
+        });
+        
+        $overlay.find('.wec-cropper-zoom-in').on('click', function() {
+            if (cropper) cropper.zoom(0.1);
+        });
+        
+        $overlay.find('.wec-cropper-zoom-out').on('click', function() {
+            if (cropper) cropper.zoom(-0.1);
+        });
+        
+        // Cancelar
+        $overlay.find('.wec-cropper-cancel').on('click', function() {
+            closeCropperModal($overlay, cropper);
+        });
+        
+        // Confirmar
+        $overlay.find('.wec-cropper-confirm').on('click', function() {
+            if (!cropper) return;
+            
+            var canvas = cropper.getCroppedCanvas({
+                width: outputWidth,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+            
+            var croppedData = canvas.toDataURL('image/jpeg', quality);
+            callback(croppedData);
+            closeCropperModal($overlay, cropper);
+        });
+    }
+    
+    // Fechar modal do cropper
+    function closeCropperModal($overlay, cropper) {
+        $overlay.removeClass('active');
+        setTimeout(function() {
+            if (cropper) cropper.destroy();
+            $overlay.remove();
+        }, 300);
     }
 
     // Modal de sucesso

@@ -63,10 +63,18 @@ class WEC_Elementor
     // Enqueue styles
     public function enqueue_styles()
     {
+        // Cropper.js CSS
+        wp_enqueue_style(
+            'cropperjs',
+            'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css',
+            [],
+            '1.6.1'
+        );
+
         wp_enqueue_style(
             'wec-elementor-form',
             WEC_PLUGIN_URL . 'elementor/assets/css/lead-form.css',
-            [],
+            ['cropperjs'],
             WEC_VERSION
         );
     }
@@ -74,10 +82,19 @@ class WEC_Elementor
     // Enqueue scripts
     public function enqueue_scripts()
     {
+        // Cropper.js
+        wp_enqueue_script(
+            'cropperjs',
+            'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js',
+            [],
+            '1.6.1',
+            true
+        );
+
         wp_enqueue_script(
             'wec-elementor-form',
             WEC_PLUGIN_URL . 'elementor/assets/js/lead-form.js',
-            ['jquery'],
+            ['jquery', 'cropperjs'],
             WEC_VERSION,
             true
         );
@@ -85,6 +102,13 @@ class WEC_Elementor
         wp_localize_script('wec-elementor-form', 'WEC_FORM', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('wec_lead_form_nonce'),
+            'cropperTexts' => [
+                'title' => __('Recortar Imagem', 'whatsapp-evolution-clients'),
+                'confirm' => __('Confirmar', 'whatsapp-evolution-clients'),
+                'cancel' => __('Cancelar', 'whatsapp-evolution-clients'),
+                'rotate' => __('Girar', 'whatsapp-evolution-clients'),
+                'zoom' => __('Zoom', 'whatsapp-evolution-clients'),
+            ],
         ]);
     }
 
@@ -176,13 +200,22 @@ class WEC_Elementor
             wp_set_post_terms($post_id, $interests, WEC_CPT::TAXONOMY_INTEREST);
         }
 
-        // Upload de foto
-        if (!empty($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+        // Upload de foto (cropada via base64 ou arquivo direto)
+        $photo_cropped = sanitize_text_field($_POST['photo_cropped'] ?? '');
+        
+        if (!empty($photo_cropped) && strpos($photo_cropped, 'data:image') === 0) {
+            // Processar imagem base64 cropada
+            $attachment_id = $this->save_base64_image($photo_cropped, $post_id, $name);
+            if ($attachment_id) {
+                set_post_thumbnail($post_id, $attachment_id);
+            }
+        } elseif (!empty($_FILES['photo_original']) && $_FILES['photo_original']['error'] === UPLOAD_ERR_OK) {
+            // Upload direto (cropper desabilitado)
             require_once ABSPATH . 'wp-admin/includes/image.php';
             require_once ABSPATH . 'wp-admin/includes/file.php';
             require_once ABSPATH . 'wp-admin/includes/media.php';
 
-            $attachment_id = media_handle_upload('photo', $post_id);
+            $attachment_id = media_handle_upload('photo_original', $post_id);
             if (!is_wp_error($attachment_id)) {
                 set_post_thumbnail($post_id, $attachment_id);
             }
@@ -192,5 +225,55 @@ class WEC_Elementor
             'message' => __('Cadastro realizado com sucesso!', 'whatsapp-evolution-clients'),
             'lead_id' => $post_id,
         ]);
+    }
+
+    // Salvar imagem base64 como attachment
+    private function save_base64_image($base64_string, $post_id, $title)
+    {
+        // Extrair dados da imagem
+        $data = explode(',', $base64_string);
+        if (count($data) !== 2) return false;
+        
+        $image_data = base64_decode($data[1]);
+        if (!$image_data) return false;
+        
+        // Determinar extensão
+        $extension = 'jpg';
+        if (strpos($data[0], 'png') !== false) {
+            $extension = 'png';
+        }
+        
+        // Criar nome único
+        $filename = sanitize_file_name($title) . '-' . time() . '.' . $extension;
+        
+        // Diretório de uploads
+        $upload_dir = wp_upload_dir();
+        $file_path = $upload_dir['path'] . '/' . $filename;
+        
+        // Salvar arquivo
+        if (!file_put_contents($file_path, $image_data)) {
+            return false;
+        }
+        
+        // Criar attachment
+        $attachment = [
+            'post_mime_type' => 'image/' . ($extension === 'png' ? 'png' : 'jpeg'),
+            'post_title' => sanitize_file_name(pathinfo($filename, PATHINFO_FILENAME)),
+            'post_content' => '',
+            'post_status' => 'inherit',
+        ];
+        
+        $attachment_id = wp_insert_attachment($attachment, $file_path, $post_id);
+        
+        if (is_wp_error($attachment_id)) {
+            return false;
+        }
+        
+        // Gerar metadados
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+        $attach_data = wp_generate_attachment_metadata($attachment_id, $file_path);
+        wp_update_attachment_metadata($attachment_id, $attach_data);
+        
+        return $attachment_id;
     }
 }
