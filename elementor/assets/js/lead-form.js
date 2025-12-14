@@ -362,15 +362,25 @@
         $form.find('.wec-tree-view').each(function() {
             var $tree = $(this);
             
-            // Toggle expansão ao clicar no toggle ou no node
-            $tree.find('.wec-tree-toggle').on('click', function(e) {
+            // Toggle expansão ao clicar no toggle
+            $tree.on('click', '.wec-tree-toggle', function(e) {
+                e.preventDefault();
                 e.stopPropagation();
                 var $item = $(this).closest('.wec-tree-item');
                 toggleTreeItem($item);
             });
             
+            // Também expandir ao clicar no node inteiro (exceto input)
+            $tree.on('click', '.wec-tree-node', function(e) {
+                if ($(e.target).is('input')) return;
+                var $item = $(this).closest('.wec-tree-item');
+                if ($item.hasClass('has-children')) {
+                    toggleTreeItem($item);
+                }
+            });
+            
             // Expandir ao selecionar um item com filhos
-            $tree.find('.wec-tree-label input').on('change', function() {
+            $tree.on('change', '.wec-tree-label input', function() {
                 var $item = $(this).closest('.wec-tree-item');
                 if ($item.hasClass('has-children') && $(this).is(':checked')) {
                     if (!$item.hasClass('expanded')) {
@@ -382,7 +392,7 @@
     }
     
     function toggleTreeItem($item) {
-        var $sublist = $item.children('.wec-tree-list');
+        var $sublist = $item.find('> .wec-tree-list');
         if ($sublist.length) {
             $item.toggleClass('expanded');
             $sublist.slideToggle(200);
