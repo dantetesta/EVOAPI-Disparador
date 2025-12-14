@@ -87,6 +87,7 @@ final class WhatsApp_Evolution_Clients {
         // Elementor Widget
         if (did_action('elementor/loaded')) {
             require_once WEC_PLUGIN_DIR . 'elementor/class-wec-elementor.php';
+            WEC_Elementor::instance();
         } else {
             add_action('elementor/loaded', function() {
                 require_once WEC_PLUGIN_DIR . 'elementor/class-wec-elementor.php';
