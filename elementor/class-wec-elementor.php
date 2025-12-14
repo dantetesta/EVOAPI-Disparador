@@ -100,6 +100,7 @@ class WEC_Elementor
         $name = sanitize_text_field($_POST['name'] ?? '');
         $email = sanitize_email($_POST['email'] ?? '');
         $whatsapp = sanitize_text_field($_POST['whatsapp'] ?? '');
+        $whatsapp_ddi = sanitize_text_field($_POST['whatsapp_ddi'] ?? '+55');
         $description = sanitize_textarea_field($_POST['description'] ?? '');
         $categories = isset($_POST['categories']) ? array_map('intval', (array)$_POST['categories']) : [];
         $interests = isset($_POST['interests']) ? array_map('intval', (array)$_POST['interests']) : [];
@@ -113,13 +114,20 @@ class WEC_Elementor
             wp_send_json_error(['message' => __('E-mail inválido.', 'whatsapp-evolution-clients')]);
         }
 
-        // Formatar WhatsApp
+        // Formatar WhatsApp com DDI
         $whatsapp_e164 = '';
         if (!empty($whatsapp)) {
-            $whatsapp_e164 = preg_replace('/[^0-9]/', '', $whatsapp);
-            if (strlen($whatsapp_e164) < 10) {
+            // Remover caracteres não numéricos do telefone
+            $phone_numbers = preg_replace('/[^0-9]/', '', $whatsapp);
+            // Remover + do DDI e manter só números
+            $ddi_numbers = preg_replace('/[^0-9]/', '', $whatsapp_ddi);
+            
+            if (strlen($phone_numbers) < 8) {
                 wp_send_json_error(['message' => __('WhatsApp inválido.', 'whatsapp-evolution-clients')]);
             }
+            
+            // Formato E.164: código do país + número
+            $whatsapp_e164 = $ddi_numbers . $phone_numbers;
         }
 
         // Verificar duplicidade por WhatsApp ou email

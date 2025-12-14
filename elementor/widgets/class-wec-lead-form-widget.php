@@ -51,6 +51,57 @@ class WEC_Lead_Form_Widget extends Widget_Base
         return ['lead', 'form', 'whatsapp', 'contact', 'formulário', 'contato'];
     }
 
+    // Lista de códigos de país (DDI)
+    private function get_country_codes()
+    {
+        return [
+            '+55' => '🇧🇷 Brasil (+55)',
+            '+1' => '🇺🇸 EUA/Canadá (+1)',
+            '+54' => '🇦🇷 Argentina (+54)',
+            '+56' => '🇨🇱 Chile (+56)',
+            '+57' => '🇨🇴 Colômbia (+57)',
+            '+58' => '🇻🇪 Venezuela (+58)',
+            '+51' => '🇵🇪 Peru (+51)',
+            '+52' => '🇲🇽 México (+52)',
+            '+591' => '🇧🇴 Bolívia (+591)',
+            '+595' => '🇵🇾 Paraguai (+595)',
+            '+598' => '🇺🇾 Uruguai (+598)',
+            '+351' => '🇵🇹 Portugal (+351)',
+            '+34' => '🇪🇸 Espanha (+34)',
+            '+33' => '🇫🇷 França (+33)',
+            '+49' => '🇩🇪 Alemanha (+49)',
+            '+39' => '🇮🇹 Itália (+39)',
+            '+44' => '🇬🇧 Reino Unido (+44)',
+            '+81' => '🇯🇵 Japão (+81)',
+            '+86' => '🇨🇳 China (+86)',
+            '+91' => '🇮🇳 Índia (+91)',
+            '+61' => '🇦🇺 Austrália (+61)',
+            '+27' => '🇿🇦 África do Sul (+27)',
+            '+971' => '🇦🇪 Emirados Árabes (+971)',
+            '+972' => '🇮🇱 Israel (+972)',
+            '+7' => '🇷🇺 Rússia (+7)',
+            '+82' => '🇰🇷 Coreia do Sul (+82)',
+            '+65' => '🇸🇬 Singapura (+65)',
+            '+66' => '🇹🇭 Tailândia (+66)',
+            '+84' => '🇻🇳 Vietnã (+84)',
+            '+63' => '🇵🇭 Filipinas (+63)',
+            '+62' => '🇮🇩 Indonésia (+62)',
+            '+60' => '🇲🇾 Malásia (+60)',
+            '+31' => '🇳🇱 Holanda (+31)',
+            '+32' => '🇧🇪 Bélgica (+32)',
+            '+41' => '🇨🇭 Suíça (+41)',
+            '+43' => '🇦🇹 Áustria (+43)',
+            '+48' => '🇵🇱 Polônia (+48)',
+            '+420' => '🇨🇿 República Tcheca (+420)',
+            '+30' => '🇬🇷 Grécia (+30)',
+            '+90' => '🇹🇷 Turquia (+90)',
+            '+20' => '🇪🇬 Egito (+20)',
+            '+212' => '🇲🇦 Marrocos (+212)',
+            '+234' => '🇳🇬 Nigéria (+234)',
+            '+254' => '🇰🇪 Quênia (+254)',
+        ];
+    }
+
     // Controles do widget
     protected function register_controls()
     {
@@ -190,6 +241,28 @@ class WEC_Lead_Form_Widget extends Widget_Base
                 'label' => __('Placeholder do WhatsApp', 'whatsapp-evolution-clients'),
                 'type' => Controls_Manager::TEXT,
                 'default' => __('(11) 99999-9999', 'whatsapp-evolution-clients'),
+                'condition' => ['show_whatsapp' => 'yes'],
+            ]
+        );
+
+        $this->add_control(
+            'whatsapp_ddi_default',
+            [
+                'label' => __('DDI Padrão', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::SELECT,
+                'default' => '+55',
+                'options' => $this->get_country_codes(),
+                'condition' => ['show_whatsapp' => 'yes'],
+            ]
+        );
+
+        $this->add_control(
+            'whatsapp_show_ddi_selector',
+            [
+                'label' => __('Permitir trocar DDI', 'whatsapp-evolution-clients'),
+                'type' => Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Se desativado, usa apenas o DDI padrão', 'whatsapp-evolution-clients'),
                 'condition' => ['show_whatsapp' => 'yes'],
             ]
         );
@@ -1051,11 +1124,25 @@ class WEC_Lead_Form_Widget extends Widget_Base
                         <span class="wec-form-required">*</span>
                     <?php endif; ?>
                 </label>
-                <input type="tel" 
-                       name="whatsapp" 
-                       class="wec-form-input wec-phone-input" 
-                       placeholder="<?php echo esc_attr($settings['whatsapp_placeholder']); ?>"
-                       <?php echo $settings['whatsapp_required'] === 'yes' ? 'required' : ''; ?>>
+                <div class="wec-phone-wrapper">
+                    <?php if ($settings['whatsapp_show_ddi_selector'] === 'yes'): ?>
+                    <select name="whatsapp_ddi" class="wec-form-select wec-ddi-select">
+                        <?php foreach ($this->get_country_codes() as $code => $label): ?>
+                            <option value="<?php echo esc_attr($code); ?>" <?php selected($settings['whatsapp_ddi_default'], $code); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php else: ?>
+                    <input type="hidden" name="whatsapp_ddi" value="<?php echo esc_attr($settings['whatsapp_ddi_default']); ?>">
+                    <span class="wec-ddi-fixed"><?php echo esc_html($settings['whatsapp_ddi_default']); ?></span>
+                    <?php endif; ?>
+                    <input type="tel" 
+                           name="whatsapp" 
+                           class="wec-form-input wec-phone-input" 
+                           placeholder="<?php echo esc_attr($settings['whatsapp_placeholder']); ?>"
+                           <?php echo $settings['whatsapp_required'] === 'yes' ? 'required' : ''; ?>>
+                </div>
             </div>
             <?php endif; ?>
 

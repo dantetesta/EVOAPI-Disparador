@@ -291,6 +291,49 @@
     }
 }
 
+/* Campo WhatsApp com DDI */
+.wec-phone-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.wec-ddi-select {
+    width: auto !important;
+    min-width: 140px;
+    max-width: 180px;
+    flex-shrink: 0;
+}
+
+.wec-ddi-fixed {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+}
+
+.wec-phone-wrapper .wec-phone-input {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 480px) {
+    .wec-phone-wrapper {
+        flex-direction: column;
+    }
+    
+    .wec-ddi-select {
+        max-width: 100%;
+        width: 100% !important;
+    }
+}
+
 /* Hierarquia - Selects */
 .wec-hierarchical-selects {
     display: flex;
