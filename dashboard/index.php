@@ -127,15 +127,9 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
         </nav>
         
         <div class="sidebar-footer">
-            <div class="user-info">
-                <img src="<?php echo get_avatar_url($current_user->ID, ['size' => 40]); ?>" alt="Avatar" class="user-avatar">
-                <div class="user-details">
-                    <span class="user-name"><?php echo esc_html($current_user->display_name); ?></span>
-                    <span class="user-role">Administrador</span>
-                </div>
-            </div>
-            <a href="<?php echo admin_url(); ?>" class="back-to-wp" title="Voltar ao WordPress">
+            <a href="<?php echo admin_url(); ?>" class="back-to-wp-btn">
                 <i class="fas fa-arrow-left"></i>
+                <span>Voltar ao WordPress</span>
             </a>
         </div>
     </aside>
