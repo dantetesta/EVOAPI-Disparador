@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes do plugin
-define('WEC_VERSION', '2.1.0');
+define('WEC_VERSION', '2.2.0');
 define('WEC_PLUGIN_FILE', __FILE__);
 define('WEC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WEC_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -83,6 +83,16 @@ final class WhatsApp_Evolution_Clients {
         require_once WEC_PLUGIN_DIR . 'admin/class-wec-admin.php';
         require_once WEC_PLUGIN_DIR . 'admin/class-wec-list-actions.php';
         require_once WEC_PLUGIN_DIR . 'admin/class-wec-news-dispatcher.php';
+
+        // Elementor Widget
+        if (did_action('elementor/loaded')) {
+            require_once WEC_PLUGIN_DIR . 'elementor/class-wec-elementor.php';
+        } else {
+            add_action('elementor/loaded', function() {
+                require_once WEC_PLUGIN_DIR . 'elementor/class-wec-elementor.php';
+                WEC_Elementor::instance();
+            });
+        }
     }
 
     /**

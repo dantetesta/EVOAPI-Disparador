@@ -1,0 +1,292 @@
+/**
+ * Estilos do Formulário de Lead - Elementor Widget
+ * 
+ * @package WhatsAppEvolutionClients
+ * @author Dante Testa <contato@dantetesta.com.br>
+ * @since 2.2.0
+ * @created 2025-12-13 22:30:00
+ */
+
+/* Reset e Base */
+.wec-lead-form {
+    box-sizing: border-box;
+}
+
+.wec-lead-form *,
+.wec-lead-form *::before,
+.wec-lead-form *::after {
+    box-sizing: inherit;
+}
+
+/* Grupo de Campo */
+.wec-form-group {
+    margin-bottom: 20px;
+}
+
+.wec-form-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Labels */
+.wec-form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    color: #374151;
+}
+
+.wec-form-required {
+    color: #e74c3c;
+    margin-left: 2px;
+}
+
+/* Inputs e Textarea */
+.wec-form-input,
+.wec-form-textarea,
+.wec-form-select {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #1f2937;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.wec-form-input:focus,
+.wec-form-textarea:focus,
+.wec-form-select:focus {
+    outline: none;
+    border-color: #25D366;
+    box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
+}
+
+.wec-form-input::placeholder,
+.wec-form-textarea::placeholder {
+    color: #9ca3af;
+}
+
+.wec-form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Select */
+.wec-form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+/* File Input */
+.wec-form-file {
+    padding: 10px;
+    background-color: #f9fafb;
+    cursor: pointer;
+}
+
+.wec-form-file::-webkit-file-upload-button {
+    padding: 8px 16px;
+    margin-right: 12px;
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.wec-form-file::-webkit-file-upload-button:hover {
+    background: #1da851;
+}
+
+/* Checkbox e Radio Groups */
+.wec-form-checkbox-group,
+.wec-form-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.wec-form-checkbox-label,
+.wec-form-radio-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wec-form-checkbox-label:hover,
+.wec-form-radio-label:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+}
+
+.wec-form-checkbox-label input,
+.wec-form-radio-label input {
+    width: 16px;
+    height: 16px;
+    accent-color: #25D366;
+    cursor: pointer;
+}
+
+.wec-form-checkbox-label input:checked + span,
+.wec-form-radio-label input:checked + span {
+    color: #25D366;
+    font-weight: 500;
+}
+
+/* Botão Submit */
+.wec-form-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.wec-form-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+}
+
+.wec-form-submit:active {
+    transform: translateY(0);
+}
+
+.wec-form-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.wec-form-submit i {
+    font-size: 14px;
+}
+
+/* Mensagens */
+.wec-form-message {
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    border: 1px solid transparent;
+}
+
+.wec-form-message.success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.wec-form-message.error {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+/* Loading Spinner */
+.wec-form-submit.loading {
+    pointer-events: none;
+}
+
+.wec-form-submit.loading span {
+    opacity: 0.7;
+}
+
+@keyframes wec-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.wec-form-submit.loading i {
+    animation: wec-spin 1s linear infinite;
+}
+
+/* Validação inline */
+.wec-form-input.error,
+.wec-form-textarea.error,
+.wec-form-select.error {
+    border-color: #dc3545;
+}
+
+.wec-form-input.error:focus,
+.wec-form-textarea.error:focus,
+.wec-form-select.error:focus {
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.wec-field-error {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #dc3545;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .wec-form-input,
+    .wec-form-textarea,
+    .wec-form-select {
+        padding: 10px 14px;
+        font-size: 16px; /* Evita zoom no iOS */
+    }
+
+    .wec-form-checkbox-group,
+    .wec-form-radio-group {
+        flex-direction: column;
+    }
+
+    .wec-form-checkbox-label,
+    .wec-form-radio-label {
+        width: 100%;
+    }
+
+    .wec-form-submit {
+        padding: 12px 24px;
+        font-size: 15px;
+    }
+}
+
+/* Animações */
+.wec-form-message {
+    animation: wec-slideIn 0.3s ease;
+}
+
+@keyframes wec-slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
