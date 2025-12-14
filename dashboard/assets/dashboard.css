@@ -325,6 +325,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
     margin-bottom: 20px;
 }
 
@@ -333,12 +335,41 @@ body {
     font-weight: 600;
 }
 
+.section-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.section-actions .search-box {
+    min-width: 200px;
+}
+
+.section-actions .search-box input {
+    width: 100%;
+    min-width: 200px;
+}
+
 .filter-select {
-    padding: 8px 15px;
+    padding: 10px 15px;
     border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
+    border-radius: 25px;
     font-size: 14px;
     cursor: pointer;
+    min-width: 180px;
+}
+
+@media (max-width: 768px) {
+    .section-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .section-actions .search-box,
+    .section-actions .filter-select {
+        width: 100%;
+    }
 }
 
 /* Posts Grid */
