@@ -202,40 +202,37 @@
 
     // Inicializar selects hierárquicos
     function initHierarchicalSelects($form) {
-        var $dataScript = $form.find('.wec-interests-children-data');
-        if (!$dataScript.length) return;
-        
-        var childrenData = {};
-        try {
-            childrenData = JSON.parse($dataScript.text());
-        } catch(e) {
-            console.error('WEC: Erro ao parsear dados hierárquicos');
-            return;
-        }
-        
-        // Detectar tipo de renderização
-        var $selectContainer = $form.find('.wec-hierarchical-selects');
-        var $radioContainer = $form.find('.wec-hierarchical-radio');
-        var $checkboxContainer = $form.find('.wec-hierarchical-checkbox');
-        
-        if ($selectContainer.length) {
-            initSelectHierarchy($selectContainer, childrenData);
-        }
-        
-        if ($radioContainer.length) {
-            initRadioCheckboxHierarchy($radioContainer, childrenData, 'radio');
-        }
-        
-        if ($checkboxContainer.length) {
-            initRadioCheckboxHierarchy($checkboxContainer, childrenData, 'checkbox');
-        }
+        // Cada container .wec-hierarchical-selects tem seus próprios dados
+        $form.find('.wec-hierarchical-selects').each(function() {
+            var $container = $(this);
+            var $dataScript = $container.find('.wec-select-children-data');
+            
+            if (!$dataScript.length) return;
+            
+            var childrenData = {};
+            try {
+                childrenData = JSON.parse($dataScript.text());
+            } catch(e) {
+                console.error('WEC: Erro ao parsear dados hierárquicos', e);
+                return;
+            }
+            
+            initSelectHierarchy($container, childrenData);
+        });
     }
     
     // Hierarquia para SELECT
     function initSelectHierarchy($container, childrenData) {
-        var $level1 = $container.find('[data-level="1"]');
-        var $level2 = $container.find('[data-level="2"]');
-        var $level3 = $container.find('[data-level="3"]');
+        var $level1 = $container.find('.wec-select-level[data-level="1"]');
+        var $level2 = $container.find('.wec-select-level[data-level="2"]');
+        var $level3 = $container.find('.wec-select-level[data-level="3"]');
+        
+        console.log('WEC Select Hierarchy Init:', {
+            level1: $level1.length,
+            level2: $level2.length,
+            level3: $level3.length,
+            data: Object.keys(childrenData)
+        });
         
         $level1.on('change', function() {
             var parentId = $(this).val();
@@ -245,6 +242,8 @@
             if (!parentId) return;
             
             var children = childrenData[parentId];
+            console.log('WEC Level 1 changed:', parentId, 'children:', children);
+            
             if (children && children.length > 0) {
                 children.forEach(function(child) {
                     $level2.append('<option value="' + child.id + '" data-has-children="' + (child.has_children ? '1' : '0') + '">' + child.name + '</option>');
