@@ -1007,6 +1007,32 @@ class WEC_Queue
             wp_send_json_error(['message' => 'Post não encontrado']);
         }
 
+        // Buscar categorias do post
+        $post_categories = wp_get_post_categories($post_id, ['fields' => 'all']);
+        $category_ids = array_map(function($cat) { return $cat->term_id; }, $post_categories);
+        $category_names = array_map(function($cat) { return $cat->name; }, $post_categories);
+
+        // Buscar interesses relacionados às categorias do post
+        $interest_ids = [];
+        $interest_names = [];
+        
+        // Mapear categorias de posts para interesses de leads
+        foreach ($post_categories as $cat) {
+            $interest_term = get_term_by('slug', $cat->slug, WEC_CPT::TAXONOMY_INTEREST);
+            if ($interest_term) {
+                $interest_ids[] = $interest_term->term_id;
+                $interest_names[] = $interest_term->name;
+            }
+            // Também buscar por nome
+            if (!$interest_term) {
+                $interest_term = get_term_by('name', $cat->name, WEC_CPT::TAXONOMY_INTEREST);
+                if ($interest_term) {
+                    $interest_ids[] = $interest_term->term_id;
+                    $interest_names[] = $interest_term->name;
+                }
+            }
+        }
+
         wp_send_json_success([
             'id' => $post->ID,
             'title' => $post->post_title,
@@ -1014,7 +1040,10 @@ class WEC_Queue
             'url' => get_permalink($post_id),
             'image' => get_the_post_thumbnail_url($post_id, 'large'),
             'date' => get_the_date('d/m/Y', $post),
-            'categories' => wp_get_post_categories($post_id, ['fields' => 'names']),
+            'categories' => $category_names,
+            'category_ids' => $category_ids,
+            'interest_ids' => array_unique($interest_ids),
+            'interest_names' => array_unique($interest_names),
         ]);
     }
 

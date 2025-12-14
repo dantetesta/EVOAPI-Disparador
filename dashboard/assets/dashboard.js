@@ -336,6 +336,7 @@
                     self.currentPost = data.data;
                     self.updatePreview(data.data);
                     self.updateImageOption(data.data);
+                    self.preselectInterests(data.data);
                     self.showPanel();
                     self.loadAllContacts();
                 } else {
@@ -877,6 +878,34 @@
                     batch_id: this.currentBatchId
                 })
             });
+        },
+
+        // Pré-selecionar interesses baseados na notícia
+        preselectInterests: function(post) {
+            const self = this;
+            
+            // Limpar seleções anteriores
+            this.clearInterests();
+            
+            // Se a notícia tem interesses mapeados, pré-selecionar
+            if (post.interest_ids && post.interest_ids.length > 0) {
+                const interestCheckboxes = document.querySelectorAll('input[name="interests[]"]');
+                let preselectedCount = 0;
+                
+                interestCheckboxes.forEach(checkbox => {
+                    if (post.interest_ids.includes(parseInt(checkbox.value))) {
+                        checkbox.checked = true;
+                        preselectedCount++;
+                    }
+                });
+                
+                console.log('[WEC Dashboard] Pré-selecionados ' + preselectedCount + ' interesses:', post.interest_names);
+                
+                // Atualizar contagem de leads automaticamente
+                if (preselectedCount > 0) {
+                    this.updateLeadCount();
+                }
+            }
         },
 
         // Reset state
