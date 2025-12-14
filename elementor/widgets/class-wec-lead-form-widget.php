@@ -1088,11 +1088,11 @@ class WEC_Lead_Form_Widget extends Widget_Base
             <?php endif; ?>
 
             <?php if ($settings['show_interests'] === 'yes' && !empty($interests) && !is_wp_error($interests)): ?>
-            <div class="wec-form-group">
+            <div class="wec-form-group wec-interests-hierarchical">
                 <label class="wec-form-label">
                     <?php echo esc_html($settings['interests_label']); ?>
                 </label>
-                <?php $this->render_taxonomy_field('interests', $interests, $settings['interests_type']); ?>
+                <?php $this->render_hierarchical_interests($interests); ?>
             </div>
             <?php endif; ?>
 
@@ -1136,5 +1136,88 @@ class WEC_Lead_Form_Widget extends Widget_Base
             }
             echo '</div>';
         }
+    }
+
+    // Renderiza interesses hierárquicos (até 3 níveis)
+    private function render_hierarchical_interests($terms)
+    {
+        // Organizar por hierarquia
+        $parents = [];
+        $children = [];
+        
+        foreach ($terms as $term) {
+            if ($term->parent == 0) {
+                $parents[] = $term;
+            } else {
+                if (!isset($children[$term->parent])) {
+                    $children[$term->parent] = [];
+                }
+                $children[$term->parent][] = $term;
+            }
+        }
+        
+        // Se não há hierarquia, mostrar select simples
+        if (empty($children)) {
+            echo '<select name="interests[]" class="wec-form-select">';
+            echo '<option value="">' . __('Selecione...', 'whatsapp-evolution-clients') . '</option>';
+            foreach ($parents as $term) {
+                echo '<option value="' . esc_attr($term->term_id) . '">' . esc_html($term->name) . '</option>';
+            }
+            echo '</select>';
+            return;
+        }
+        
+        // Container para selects hierárquicos
+        echo '<div class="wec-hierarchical-selects">';
+        
+        // Nível 1 (pais)
+        echo '<select name="interests[]" class="wec-form-select wec-interest-level" data-level="1">';
+        echo '<option value="">' . __('Selecione...', 'whatsapp-evolution-clients') . '</option>';
+        foreach ($parents as $term) {
+            $has_children = isset($children[$term->term_id]);
+            echo '<option value="' . esc_attr($term->term_id) . '" data-has-children="' . ($has_children ? '1' : '0') . '">' . esc_html($term->name) . '</option>';
+        }
+        echo '</select>';
+        
+        // Nível 2 (filhos) - inicialmente oculto
+        echo '<select name="interests[]" class="wec-form-select wec-interest-level" data-level="2" style="display:none;">';
+        echo '<option value="">' . __('Selecione subcategoria...', 'whatsapp-evolution-clients') . '</option>';
+        echo '</select>';
+        
+        // Nível 3 (netos) - inicialmente oculto
+        echo '<select name="interests[]" class="wec-form-select wec-interest-level" data-level="3" style="display:none;">';
+        echo '<option value="">' . __('Selecione opção...', 'whatsapp-evolution-clients') . '</option>';
+        echo '</select>';
+        
+        echo '</div>';
+        
+        // Dados dos filhos em JSON para JavaScript
+        $children_data = [];
+        foreach ($children as $parent_id => $child_terms) {
+            $children_data[$parent_id] = [];
+            foreach ($child_terms as $child) {
+                $has_grandchildren = isset($children[$child->term_id]);
+                $children_data[$parent_id][] = [
+                    'id' => $child->term_id,
+                    'name' => $child->name,
+                    'has_children' => $has_grandchildren,
+                ];
+                // Adicionar netos se existirem
+                if ($has_grandchildren) {
+                    foreach ($children[$child->term_id] as $grandchild) {
+                        if (!isset($children_data[$child->term_id])) {
+                            $children_data[$child->term_id] = [];
+                        }
+                        $children_data[$child->term_id][] = [
+                            'id' => $grandchild->term_id,
+                            'name' => $grandchild->name,
+                            'has_children' => false,
+                        ];
+                    }
+                }
+            }
+        }
+        
+        echo '<script type="application/json" class="wec-interests-children-data">' . json_encode($children_data) . '</script>';
     }
 }

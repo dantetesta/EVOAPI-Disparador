@@ -32,6 +32,9 @@
             if ($form.data('wec-initialized')) return;
             $form.data('wec-initialized', true);
 
+            // Inicializar selects hierárquicos
+            initHierarchicalSelects($form);
+
             // Máscara de telefone
             var $phoneInputs = $form.find('.wec-phone-input');
             $phoneInputs.each(function() {
@@ -118,17 +121,14 @@
                     contentType: false,
                     success: function(response) {
                         if (response.success) {
-                            $message.html(response.data.message || successMsg)
-                                    .addClass('success')
-                                    .show();
+                            // Mostrar modal de sucesso
+                            showSuccessModal(response.data.message || successMsg);
                             
                             // Limpar formulário
                             $form[0].reset();
                             
-                            // Scroll para mensagem
-                            $('html, body').animate({
-                                scrollTop: $form.offset().top - 50
-                            }, 300);
+                            // Reset selects hierárquicos
+                            $form.find('.wec-interest-level[data-level="2"], .wec-interest-level[data-level="3"]').hide();
 
                             // Disparar evento customizado
                             $(document).trigger('wec_lead_form_success', [response.data]);
@@ -153,6 +153,96 @@
                     }
                 });
             });
+        });
+    }
+
+    // Inicializar selects hierárquicos
+    function initHierarchicalSelects($form) {
+        var $container = $form.find('.wec-hierarchical-selects');
+        if (!$container.length) return;
+        
+        var $dataScript = $form.find('.wec-interests-children-data');
+        if (!$dataScript.length) return;
+        
+        var childrenData = {};
+        try {
+            childrenData = JSON.parse($dataScript.text());
+        } catch(e) {
+            console.error('WEC: Erro ao parsear dados hierárquicos');
+            return;
+        }
+        
+        var $level1 = $container.find('[data-level="1"]');
+        var $level2 = $container.find('[data-level="2"]');
+        var $level3 = $container.find('[data-level="3"]');
+        
+        // Nível 1 change
+        $level1.on('change', function() {
+            var parentId = $(this).val();
+            
+            // Reset níveis 2 e 3
+            $level2.hide().find('option:not(:first)').remove();
+            $level3.hide().find('option:not(:first)').remove();
+            
+            if (!parentId) return;
+            
+            var children = childrenData[parentId];
+            if (children && children.length > 0) {
+                children.forEach(function(child) {
+                    $level2.append('<option value="' + child.id + '" data-has-children="' + (child.has_children ? '1' : '0') + '">' + child.name + '</option>');
+                });
+                $level2.show();
+            }
+        });
+        
+        // Nível 2 change
+        $level2.on('change', function() {
+            var parentId = $(this).val();
+            
+            // Reset nível 3
+            $level3.hide().find('option:not(:first)').remove();
+            
+            if (!parentId) return;
+            
+            var children = childrenData[parentId];
+            if (children && children.length > 0) {
+                children.forEach(function(child) {
+                    $level3.append('<option value="' + child.id + '">' + child.name + '</option>');
+                });
+                $level3.show();
+            }
+        });
+    }
+
+    // Modal de sucesso
+    function showSuccessModal(message) {
+        // Remover modal anterior se existir
+        $('.wec-success-modal-overlay').remove();
+        
+        var modalHtml = '<div class="wec-success-modal-overlay">' +
+            '<div class="wec-success-modal">' +
+                '<div class="wec-success-icon"><i class="fas fa-check-circle"></i></div>' +
+                '<h3>Sucesso!</h3>' +
+                '<p>' + message + '</p>' +
+                '<button type="button" class="wec-success-modal-btn">OK</button>' +
+            '</div>' +
+        '</div>';
+        
+        $('body').append(modalHtml);
+        
+        // Animar entrada
+        setTimeout(function() {
+            $('.wec-success-modal-overlay').addClass('active');
+        }, 10);
+        
+        // Fechar modal
+        $('.wec-success-modal-overlay').on('click', function(e) {
+            if ($(e.target).hasClass('wec-success-modal-overlay') || $(e.target).hasClass('wec-success-modal-btn')) {
+                $(this).removeClass('active');
+                setTimeout(function() {
+                    $('.wec-success-modal-overlay').remove();
+                }, 300);
+            }
         });
     }
 
