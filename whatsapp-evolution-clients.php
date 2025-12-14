@@ -10,8 +10,8 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: whatsapp-evolution-clients
  * Domain Path: /languages
- * Requires at least: 6.0
- * Requires PHP: 8.2
+ * Requires at least: 5.8
+ * Requires PHP: 7.4
  * 
  * @package WhatsAppEvolutionClients
  * @author Dante Testa <contato@dantetesta.com.br>
@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes do plugin
-define('WEC_VERSION', '2.2.0');
+define('WEC_VERSION', '2.2.8');
 define('WEC_PLUGIN_FILE', __FILE__);
 define('WEC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WEC_PLUGIN_URL', plugin_dir_url(__FILE__));

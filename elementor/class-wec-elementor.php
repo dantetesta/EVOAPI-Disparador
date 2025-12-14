@@ -12,6 +12,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Verificar se Elementor está carregado
+if (!did_action('elementor/loaded')) {
+    return;
+}
+
 class WEC_Elementor
 {
     private static $instance = null;
