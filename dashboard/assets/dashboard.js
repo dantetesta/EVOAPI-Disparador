@@ -1090,15 +1090,43 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // Atualizar monitor
                     this.updateMonitor();
-                    alert('Disparo excluído com sucesso!');
+                    location.reload();
                 } else {
                     alert(data.data?.message || 'Erro ao excluir disparo');
                 }
             })
             .catch(err => {
                 console.error('[WEC] Erro ao deletar batch:', err);
+                alert('Erro de conexão');
+            });
+        },
+
+        // Deletar todo o histórico
+        deleteAllHistory: function() {
+            if (!confirm('Tem certeza que deseja LIMPAR TODO O HISTÓRICO?\n\nEssa ação não pode ser desfeita!')) {
+                return;
+            }
+
+            fetch(WEC_DASHBOARD.ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'wec_delete_all_batches',
+                    nonce: WEC_DASHBOARD.nonce
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Histórico limpo com sucesso!');
+                    location.reload();
+                } else {
+                    alert(data.data?.message || 'Erro ao limpar histórico');
+                }
+            })
+            .catch(err => {
+                console.error('[WEC] Erro ao limpar histórico:', err);
                 alert('Erro de conexão');
             });
         }

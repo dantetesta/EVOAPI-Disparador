@@ -550,6 +550,9 @@ $nonce = wp_create_nonce('wec_ajax_nonce');
             <div class="page-content" data-page="history">
                 <div class="section-header">
                     <h2><i class="fas fa-history"></i> Histórico de Disparos</h2>
+                    <button class="btn-clear-all-history" onclick="Dashboard.deleteAllHistory()">
+                        <i class="fas fa-trash-alt"></i> Limpar Todo Histórico
+                    </button>
                 </div>
                 
                 <div class="history-list" id="historyList">

@@ -1643,6 +1643,29 @@ body {
     color: #dc2626;
 }
 
+.btn-clear-all-history {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-clear-all-history:hover {
+    background: #b91c1c;
+}
+
+.btn-clear-all-history i {
+    font-size: 12px;
+}
+
 .no-active-dispatch {
     text-align: center;
     padding: 40px 20px;

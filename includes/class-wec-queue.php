@@ -43,6 +43,7 @@ class WEC_Queue
         add_action('wp_ajax_wec_cancel_dispatch', [$this, 'ajax_cancel_dispatch']);
         add_action('wp_ajax_wec_get_monitor_data', [$this, 'ajax_get_monitor_data']);
         add_action('wp_ajax_wec_delete_batch', [$this, 'ajax_delete_batch']);
+        add_action('wp_ajax_wec_delete_all_batches', [$this, 'ajax_delete_all_batches']);
     }
 
     /**
@@ -1207,5 +1208,31 @@ class WEC_Queue
         } else {
             wp_send_json_error(['message' => 'Erro ao excluir disparo']);
         }
+    }
+
+    /**
+     * AJAX: Deleta todo o histórico de batches
+     */
+    public function ajax_delete_all_batches(): void
+    {
+        if (!WEC_Security::verify_nonce($_POST['nonce'] ?? '')) {
+            wp_send_json_error(['message' => 'Nonce inválido']);
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Sem permissão']);
+        }
+
+        global $wpdb;
+        $batch_table = $wpdb->prefix . self::BATCH_TABLE;
+        $queue_table = $wpdb->prefix . self::TABLE_NAME;
+
+        // Deletar todos os itens da fila
+        $wpdb->query("TRUNCATE TABLE $queue_table");
+
+        // Deletar todos os batches
+        $wpdb->query("TRUNCATE TABLE $batch_table");
+
+        wp_send_json_success(['message' => 'Histórico limpo com sucesso']);
     }
 }
